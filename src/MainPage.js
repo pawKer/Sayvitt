@@ -2,30 +2,31 @@ import { useEffect, useState } from 'react';
 import logo from './logo.svg';
 import { useLocation } from "react-router-dom";
 export function MainPage() {
-    const [token, setToken] = useState('')
-    const [accessToken, setAccessToken] = useState('')
+    const [token, setToken] = useState(localStorage.getItem("token"))
+    const [accessToken, setAccessToken] = useState(localStorage.getItem("accessToken"))
     const [name, setName] = useState('')
+    const [data, setData] = useState([])
+    const locationz = useLocation();
     useEffect(() => {
         console.log("Hellp")
-        if (token !== '') {
-            window.location.replace(`https://www.reddit.com/api/v1/authorize?client_id=${process.env.REACT_APP_REDDIT_API_USER}&response_type=code&state=${Math.random().toString(36).substring(2)}&redirect_uri=${process.env.REACT_APP_URI}&duration=temporary&scope=identity,history`)
-        } 
-        
-    }, [])
-    const locationz = useLocation();
-
-    useEffect(() => {
-
+        console.log(token)
         const searchParams = new URLSearchParams(locationz.search);
-        console.log(searchParams.get('code'))
-        setToken(searchParams.get('code'))
-    }, [locationz]);
+        if (!token && !searchParams.get('code')) {
+            let redirect_url = `https://www.reddit.com/api/v1/authorize?client_id=${process.env.REACT_APP_REDDIT_API_USER}&response_type=code&state=${Math.random().toString(36).substring(2)}&redirect_uri=${process.env.REACT_APP_URI}&duration=temporary&scope=identity,history`
+            console.log(redirect_url)
+            window.location.replace(redirect_url)
+        } 
+        if(searchParams.get('code')){
+            setToken(searchParams.get('code'))
+            localStorage.setItem("token", searchParams.get('code'))
+        }
+    }, [])
 
     useEffect(() => {
             console.log(token, 'TOKEN CHANGED')
-            if(token) {
+            if(token && !accessToken) {
                 let headers = new Headers();
-                headers.append('Authorization', 'Basic ' + btoa(process.env.REACT_APP_REDDIT_API_USER + ":" + process.env.REACT_APP_REDDIT_API_SECRET));
+                headers.set('Authorization', 'Basic ' + btoa(process.env.REACT_APP_REDDIT_API_USER + ":" + process.env.REACT_APP_REDDIT_API_SECRET));
                 console.log(headers)
                 fetch(`https://www.reddit.com/api/v1/access_token`, {
                     method: 'post',
@@ -41,6 +42,7 @@ export function MainPage() {
                 .then(data => {
                     console.log(data)
                     setAccessToken(data.access_token)
+                    localStorage.setItem("accessToken", data.access_token)
                 })
                 .catch((err) => {
                     console.log(err)
@@ -66,9 +68,33 @@ export function MainPage() {
             .catch((err) => {
                 console.log(err)
             })
+            
         }
     }, [accessToken])
 
+    useEffect(() => {
+        if(name) {
+            console.log('nameeeeeee', name)
+            fetch(`https://oauth.reddit.com/user/${name}/saved/.json?limit=100`, {
+                method: 'get', 
+                headers: new Headers({
+                    'Authorization': `bearer ${accessToken}`,
+                    'User-Agent': 'web:com.sayvitt:1.0.0 (by /u/raresdn)'
+                })
+            }).then((res) => res.json())
+            .then(data => {
+                setData(data.data.children)
+                console.log(data)
+            })
+        }
+    }, [name])
+    const returnSavedPosts = (data) => {
+        let items = []
+        data.forEach((post) => {
+            items.push(<li key={post.data.url}>{post.data.title}</li>)
+        })
+        return items
+    }
     return (
         <div className="App">
             <header className="App-header">
@@ -86,7 +112,10 @@ export function MainPage() {
                 Learn React
                 </a>
             </header>
-            
+            <ul>
+                {data && returnSavedPosts(data)}
+            </ul>
         </div>
+
     )
 }
