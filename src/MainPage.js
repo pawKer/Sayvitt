@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import logo from './logo.svg';
 import { useLocation } from "react-router-dom";
+import Spinner from 'react-bootstrap/Spinner';
 export function MainPage() {
     const [token, setToken] = useState(localStorage.getItem("token"))
     const [accessToken, setAccessToken] = useState(localStorage.getItem("accessToken"))
     const [name, setName] = useState('')
     const [data, setData] = useState([])
+    const [loadingPosts, setLoadingPosts] = useState(true)
+    const [savedPostsBySubreddit, setSavedPostsBySubreddit] = useState(new Map())
     const locationz = useLocation();
     useEffect(() => {
         console.log("Hellp")
@@ -68,12 +70,11 @@ export function MainPage() {
             .catch((err) => {
                 console.log(err)
             })
-            
         }
     }, [accessToken])
 
     useEffect(() => {
-        if(name) {
+        if(name && (!data || data.length === 0)) {
             console.log('nameeeeeee', name)
             fetch(`https://oauth.reddit.com/user/${name}/saved/.json?limit=100`, {
                 method: 'get', 
@@ -84,36 +85,89 @@ export function MainPage() {
             }).then((res) => res.json())
             .then(data => {
                 setData(data.data.children)
+                setLoadingPosts(false)
                 console.log(data)
+                formatSavedPostsBySubreddit(data.data.children)
             })
         }
     }, [name])
     const returnSavedPosts = (data) => {
         let items = []
-        data.forEach((post) => {
-            items.push(<li key={post.data.url}>{post.data.title}</li>)
-        })
-        return items
+        if(data && data.length > 0) {
+            data.forEach((post) => {
+                items.push(<li key={post.data.url} ><a href={`http://reddit.com${post.data.permalink}`}>{post.data.title}</a></li>)
+            })
+            return items
+        }
+        return []
+        
     }
+
+    const formatSavedPostsBySubreddit = (data) => {
+        let items = new Map()
+        if(data && data.length > 0) {
+            data.forEach((post) => {
+                
+                if(items.has(post.data.subreddit)){
+                    items.get(post.data.subreddit).posts.push({
+                        url: post.data.permalink,
+                        title: post.data.title
+                    })
+                } else {
+                    items.set(post.data.subreddit, {posts: []})
+                    items.get(post.data.subreddit).posts.push({
+                        url: post.data.permalink,
+                        title: post.data.title
+                    })
+                }
+            })
+            setSavedPostsBySubreddit(items)
+        }
+        console.log(items)
+    }
+
+    const returnSavedPostsBySubreddit = (data) => {
+        let items = []
+        let keyArray = Array.from(data.keys())
+        keyArray.forEach(subreddit => {
+            items.push(
+                <li key={subreddit}>{subreddit} ({data.get(subreddit).posts.length} posts)</li>
+            )
+            // items.push(<ol style="list-style-type: lower-alpha; padding-bottom: 0;"></ol>)
+            // data.get(subreddit).forEach(post => {
+            //     items.push(<li key={post.url} ><a href={`http://reddit.com${post.url}`}>{post.title}</a></li>)
+                
+            // })
+            // items.push(</ol>)
+        })
+        return items;
+    }
+
+
     return (
         <div className="App">
-            <header className="App-header">
-                <img src={logo} className="App-logo" alt="logo" />
+            <div>
                 {name && <h1>Hello, {name}</h1>}
-                <p>
-                Edit <code>src/App.js</code> and save to reload.
-                </p>
-                <a
-                className="App-link"
-                href="https://reactjs.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                >
-                Learn React
-                </a>
-            </header>
+                {loadingPosts ? (
+                    <Spinner animation="border" role="status">
+                        <span className="sr-only">Loading...</span>
+                    </Spinner>
+                )
+                    :
+                    <h3>Your saved posts: </h3>
+                }
+            </div>
             <ul>
-                {data && returnSavedPosts(data)}
+                {data && 
+                    returnSavedPosts(data)
+                }
+            </ul>
+
+            <ul>
+                {
+                    savedPostsBySubreddit &&
+                        returnSavedPostsBySubreddit(savedPostsBySubreddit)
+                }
             </ul>
         </div>
 

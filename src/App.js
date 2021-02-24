@@ -1,4 +1,5 @@
 import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Route, useLocation } from "react-router-dom";
 import { MainPage } from './MainPage'
