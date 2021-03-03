@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from "react-router-dom";
 import Spinner from 'react-bootstrap/Spinner';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Card from 'react-bootstrap/Card';
+import Form from 'react-bootstrap/Form';
+
 export function MainPage() {
     const [token, setToken] = useState(localStorage.getItem("token"))
     const [accessToken, setAccessToken] = useState(localStorage.getItem("accessToken"))
     const [name, setName] = useState('')
+    const [tokenExpired, setTokenExpired] = useState(false)
     const [data, setData] = useState([])
     const [loadingPosts, setLoadingPosts] = useState(true)
     const [savedPostsBySubreddit, setSavedPostsBySubreddit] = useState(new Map())
@@ -13,16 +20,31 @@ export function MainPage() {
         console.log("Hellp")
         console.log(token)
         const searchParams = new URLSearchParams(locationz.search);
-        if (!token && !searchParams.get('code')) {
+        if(!tokenExpired) {
+            if (!token && !searchParams.get('code')) {
+                let redirect_url = `https://www.reddit.com/api/v1/authorize?client_id=${process.env.REACT_APP_REDDIT_API_USER}&response_type=code&state=${Math.random().toString(36).substring(2)}&redirect_uri=${process.env.REACT_APP_URI}&duration=temporary&scope=identity,history`
+                console.log(redirect_url)
+                window.location.replace(redirect_url)
+            } 
+            if(searchParams.get('code')){
+                setToken(searchParams.get('code'))
+                localStorage.setItem("token", searchParams.get('code'))
+            }
+        } else {
+            console.log("TOKEN EXPIRED")
+            console.log("CODE BEFORE:", searchParams.get('code'))
             let redirect_url = `https://www.reddit.com/api/v1/authorize?client_id=${process.env.REACT_APP_REDDIT_API_USER}&response_type=code&state=${Math.random().toString(36).substring(2)}&redirect_uri=${process.env.REACT_APP_URI}&duration=temporary&scope=identity,history`
             console.log(redirect_url)
             window.location.replace(redirect_url)
-        } 
-        if(searchParams.get('code')){
-            setToken(searchParams.get('code'))
-            localStorage.setItem("token", searchParams.get('code'))
+            if(searchParams.get('code')){
+                console.log("CODE AFTER:", searchParams.get('code'))
+                setToken(searchParams.get('code'))
+                setTokenExpired(false)
+                localStorage.setItem("token", searchParams.get('code'))
+            }
         }
-    }, [])
+        
+    }, [tokenExpired])
 
     useEffect(() => {
             console.log(token, 'TOKEN CHANGED')
@@ -62,9 +84,20 @@ export function MainPage() {
                     'Authorization': `bearer ${accessToken}`,
                     'User-Agent': 'web:com.sayvitt:1.0.0 (by /u/raresdn)'
                 })
-            }).then((res) => res.json())
+            }).then((res) => {
+                console.log(res)
+                if(res.status === 200){
+                    return res.json()
+                } else {
+                    setTokenExpired(true)
+                    setAccessToken(null)
+                    throw "Token expired"
+                }
+            })
             .then(data => {
-                setName(data.name)
+                if(data.name) {
+                    setName(data.name)
+                }
                 console.log(data)
             })
             .catch((err) => {
@@ -101,6 +134,33 @@ export function MainPage() {
         }
         return []
         
+    }
+
+    const returnCards = (data) => {
+        let cols = []
+        let items = []
+        if(data && data.length > 0) {
+            data.forEach((post) => {
+                cols.push(
+                <Col md={4}>
+                    <Card key={post.data.url} style={{height: '100%'}}>
+                        <Card.Body>
+                            <a href={`http://reddit.com${post.data.permalink}`}>{post.data.title}</a>
+                        </Card.Body>
+                        <Card.Footer>
+                        <Form.Group controlId="formBasicCheckbox">
+                            <Form.Check type="checkbox" label="Check me out" onChange={handleCheckBox}/>
+                        </Form.Group>
+                        </Card.Footer>
+                    </Card>
+                </Col>
+                )
+            })
+            for(let i = 0; i < cols.length - 3; i=i+3) {
+                items.push(<Row>{cols[i]}{cols[i+1]}{cols[i+2]}</Row>)
+            }
+        }
+        return items
     }
 
     const formatSavedPostsBySubreddit = (data) => {
@@ -143,6 +203,10 @@ export function MainPage() {
         return items;
     }
 
+    const handleCheckBox = (e) => {
+        console.log("Event ", e)
+    }
+
 
     return (
         <div className="App">
@@ -157,11 +221,16 @@ export function MainPage() {
                     <h3>Your saved posts: </h3>
                 }
             </div>
-            <ul>
+            {data && 
+                <Container fluid>
+                    {returnCards(data)}
+                </Container>
+            }
+            {/* <ul>
                 {data && 
                     returnSavedPosts(data)
                 }
-            </ul>
+            </ul> */}
 
             <ul>
                 {
