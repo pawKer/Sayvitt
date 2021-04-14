@@ -29,7 +29,7 @@ export function MainPage() {
     useEffect(() => {
         const searchParams = new URLSearchParams(locationz.search);
         if (!localStorage.getItem('redirected') || tokenExpired) {
-            let redirect_url = `https://www.reddit.com/api/v1/authorize?client_id=${process.env.REACT_APP_REDDIT_API_USER}&response_type=code&state=${Math.random().toString(36).substring(2)}&redirect_uri=${process.env.REACT_APP_URI}&duration=temporary&scope=identity,history`
+            let redirect_url = `https://www.reddit.com/api/v1/authorize?client_id=${process.env.REACT_APP_REDDIT_API_USER}&response_type=code&state=${Math.random().toString(36).substring(2)}&redirect_uri=${process.env.REACT_APP_URI}&duration=temporary&scope=identity,history,save`
             console.log(redirect_url)
             localStorage.setItem("redirected", true)
             window.location.replace(redirect_url)
@@ -231,6 +231,17 @@ export function MainPage() {
 
     const handleCheckBox = (e) => {
         console.log("Event ", e)
+        // TODO: Move this functionality to a button
+        // fetch(`https://oauth.reddit.com/api/unsave?id=${e}`, {
+        //         method: 'post', 
+        //         headers: new Headers({
+        //             'Authorization': `bearer ${localStorage.getItem("accessToken")}`,
+        //             'User-Agent': 'web:com.sayvitt:1.0.0 (by /u/raresdn)'
+        //         })
+        //     }).then((res) => res.json())
+        //     .then(data => {
+        //         console.log(data)
+        //     })
     }
 
 

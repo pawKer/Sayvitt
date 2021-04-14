@@ -8,6 +8,7 @@ export const PostCards = (props) => {
     let data = props.data;
     if(data && data.length > 0) {
         data.forEach((post) => {
+            console.log(post.data)
             let val = <Col key={post.data.url} md={4}>
                         <Card key={post.data.url} style={{height: '100%'}}>
                         <Card.Body>
@@ -15,7 +16,7 @@ export const PostCards = (props) => {
                         </Card.Body>
                         <Card.Footer>
                         <Form.Group controlId="formBasicCheckbox">
-                            <Form.Check type="checkbox" label="Check me out" onChange={props.handleCheckBox}/>
+                            <Form.Check type="checkbox" label="Check me out" onChange={() => props.handleCheckBox(post.data.name)}/>
                         </Form.Group>
                         </Card.Footer>
                         </Card>
