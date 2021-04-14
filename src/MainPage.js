@@ -4,8 +4,8 @@ import Spinner from 'react-bootstrap/Spinner';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import Card from 'react-bootstrap/Card';
-import Form from 'react-bootstrap/Form';
+import { SubredditFilters } from './SubredditFilters';
+import { PostCards } from './PostCards';
 
 export function MainPage() {
     const [token, setToken] = useState(localStorage.getItem("token"))
@@ -15,88 +15,148 @@ export function MainPage() {
     const [data, setData] = useState([])
     const [loadingPosts, setLoadingPosts] = useState(true)
     const [savedPostsBySubreddit, setSavedPostsBySubreddit] = useState(new Map())
+    const [selectedFilters, setSelectedFilters] = useState([])
     const locationz = useLocation();
-    useEffect(() => {
-        console.log("Hellp")
-        console.log(token)
-        const searchParams = new URLSearchParams(locationz.search);
-        if(!tokenExpired) {
-            if (!token && !searchParams.get('code')) {
-                let redirect_url = `https://www.reddit.com/api/v1/authorize?client_id=${process.env.REACT_APP_REDDIT_API_USER}&response_type=code&state=${Math.random().toString(36).substring(2)}&redirect_uri=${process.env.REACT_APP_URI}&duration=temporary&scope=identity,history`
-                console.log(redirect_url)
-                window.location.replace(redirect_url)
-            } 
-            if(searchParams.get('code')){
-                setToken(searchParams.get('code'))
-                localStorage.setItem("token", searchParams.get('code'))
-            }
+
+    const onToggleFilter = (fil) => {
+        if(selectedFilters.includes(fil)) {
+            setSelectedFilters(selectedFilters.filter(e => e !== fil))
         } else {
-            console.log("TOKEN EXPIRED")
-            console.log("CODE BEFORE:", searchParams.get('code'))
+            setSelectedFilters(selectedFilters.concat(fil))
+        }
+    }
+
+    useEffect(() => {
+        const searchParams = new URLSearchParams(locationz.search);
+        if (!localStorage.getItem('redirected') || tokenExpired) {
             let redirect_url = `https://www.reddit.com/api/v1/authorize?client_id=${process.env.REACT_APP_REDDIT_API_USER}&response_type=code&state=${Math.random().toString(36).substring(2)}&redirect_uri=${process.env.REACT_APP_URI}&duration=temporary&scope=identity,history`
             console.log(redirect_url)
+            localStorage.setItem("redirected", true)
             window.location.replace(redirect_url)
-            if(searchParams.get('code')){
-                console.log("CODE AFTER:", searchParams.get('code'))
-                setToken(searchParams.get('code'))
-                setTokenExpired(false)
-                localStorage.setItem("token", searchParams.get('code'))
-            }
+        } 
+        if(searchParams.get('code') && searchParams.get('code') !== localStorage.getItem("token")){
+            setToken(searchParams.get('code'))
+            setTokenExpired(false)
+            localStorage.setItem("token", searchParams.get('code'))
+            getAccessToken()
         }
+        if(localStorage.getItem("accessToken") && data.length === 0) {
+            getData()
+        }
+    })
+
+    // useEffect(() => {
+    //     console.log("Hellp")
+    //     console.log(token)
+    //     const searchParams = new URLSearchParams(locationz.search);
+    //     // if(!tokenExpired) {
+    //     //     if (!token && !searchParams.get('code')) {
+    //     //         let redirect_url = `https://www.reddit.com/api/v1/authorize?client_id=${process.env.REACT_APP_REDDIT_API_USER}&response_type=code&state=${Math.random().toString(36).substring(2)}&redirect_uri=${process.env.REACT_APP_URI}&duration=temporary&scope=identity,history`
+    //     //         console.log(redirect_url)
+    //     //         window.location.replace(redirect_url)
+    //     //     } 
+    //     //     if(searchParams.get('code')){
+    //     //         setToken(searchParams.get('code'))
+    //     //         setTokenExpired(false)
+    //     //         localStorage.setItem("token", searchParams.get('code'))
+    //     //     }
+    //     // } else {
+    //         console.log("TOKEN EXPIRED")
+    //         console.log("CODE BEFORE:", searchParams.get('code'))
+    //         let redirect_url = `https://www.reddit.com/api/v1/authorize?client_id=${process.env.REACT_APP_REDDIT_API_USER}&response_type=code&state=${Math.random().toString(36).substring(2)}&redirect_uri=${process.env.REACT_APP_URI}&duration=temporary&scope=identity,history`
+    //         console.log(redirect_url)
+    //         // window.location.replace(redirect_url)
+    //         if(searchParams.get('code')){
+    //             console.log("CODE AFTER:", searchParams.get('code'))
+    //             setToken(searchParams.get('code'))
+    //             setTokenExpired(false)
+    //             localStorage.setItem("token", searchParams.get('code'))
+    //         }
+    //     // }
         
-    }, [tokenExpired])
+    // }, [tokenExpired])
 
-    useEffect(() => {
-            console.log(token, 'TOKEN CHANGED')
-            if(token && !accessToken) {
-                let headers = new Headers();
-                headers.set('Authorization', 'Basic ' + btoa(process.env.REACT_APP_REDDIT_API_USER + ":" + process.env.REACT_APP_REDDIT_API_SECRET));
-                console.log(headers)
-                fetch(`https://www.reddit.com/api/v1/access_token`, {
-                    method: 'post',
-                    headers: new Headers({
-                        'Authorization': `Basic ${btoa(`${process.env.REACT_APP_REDDIT_API_USER}:${process.env.REACT_APP_REDDIT_API_SECRET}`)}`,
-                    }),
-                    body: new URLSearchParams({
-                        'code': token,
-                        'redirect_uri': process.env.REACT_APP_URI,
-                        'grant_type': 'authorization_code'
-                    }),
-                }).then((res) => res.json())
-                .then(data => {
-                    console.log(data)
-                    setAccessToken(data.access_token)
-                    localStorage.setItem("accessToken", data.access_token)
-                })
-                .catch((err) => {
-                    console.log(err)
-                })
-            }
-    }, [token])
+    // useEffect(() => {
+    //         console.log(token, 'TOKEN CHANGED')
+    //         if(token && !accessToken) {
+    //             let headers = new Headers();
+    //             headers.set('Authorization', 'Basic ' + btoa(process.env.REACT_APP_REDDIT_API_USER + ":" + process.env.REACT_APP_REDDIT_API_SECRET));
+    //             console.log(headers)
+    //             fetch(`https://www.reddit.com/api/v1/access_token`, {
+    //                 method: 'post',
+    //                 headers: new Headers({
+    //                     'Authorization': `Basic ${btoa(`${process.env.REACT_APP_REDDIT_API_USER}:${process.env.REACT_APP_REDDIT_API_SECRET}`)}`,
+    //                 }),
+    //                 body: new URLSearchParams({
+    //                     'code': token,
+    //                     'redirect_uri': process.env.REACT_APP_URI,
+    //                     'grant_type': 'authorization_code'
+    //                 }),
+    //             }).then((res) => res.json())
+    //             .then(data => {
+    //                 console.log(data)
+    //                 setAccessToken(data.access_token)
+    //                 localStorage.setItem("accessToken", data.access_token)
+    //             })
+    //             .catch((err) => {
+    //                 console.log(err)
+    //             })
+    //         }
+    // }, [token])
 
-    useEffect(() => {
+    const getAccessToken = () => {
+        let headers = new Headers();
+        console.log('Authorization', 'Basic ' + btoa(process.env.REACT_APP_REDDIT_API_USER + ":" + process.env.REACT_APP_REDDIT_API_SECRET))
+        headers.set('Authorization', 'Basic ' + btoa(process.env.REACT_APP_REDDIT_API_USER + ":" + process.env.REACT_APP_REDDIT_API_SECRET));
+        console.log(headers)
+        fetch(`https://www.reddit.com/api/v1/access_token`, {
+            method: 'post',
+            headers: new Headers({
+                'Authorization': `Basic ${btoa(`${process.env.REACT_APP_REDDIT_API_USER}:${process.env.REACT_APP_REDDIT_API_SECRET}`)}`,
+            }),
+            body: new URLSearchParams({
+                'code': localStorage.getItem("token"),
+                'redirect_uri': process.env.REACT_APP_URI,
+                'grant_type': 'authorization_code'
+            }),
+        }).then((res) => res.json())
+        .then(data => {
+            console.log(data)
+            setAccessToken(data.access_token)
+            localStorage.setItem("accessToken", data.access_token)
+            getData()
+        })
+        .catch((err) => {
+            console.log(err)
+        })
+    }
+    const getData = async () => {
         // NOW USE THE TOKEN TO GET DATA
         console.log(accessToken, "YEEEEE")
-        if(accessToken) {
-            fetch('https://oauth.reddit.com/api/v1/me', {
+        if(localStorage.getItem("accessToken")) {
+            await fetch('https://oauth.reddit.com/api/v1/me', {
                 method: 'get', 
                 headers: new Headers({
-                    'Authorization': `bearer ${accessToken}`,
+                    'Authorization': `bearer ${localStorage.getItem("accessToken")}`,
                     'User-Agent': 'web:com.sayvitt:1.0.0 (by /u/raresdn)'
                 })
             }).then((res) => {
                 console.log(res)
                 if(res.status === 200){
                     return res.json()
-                } else {
+                } else if (res.status === 401) {
                     setTokenExpired(true)
+                    localStorage.setItem("redirected", false)
                     setAccessToken(null)
                     throw "Token expired"
+                } else {
+                    throw "Something else happened idk what"
                 }
             })
             .then(data => {
                 if(data.name) {
                     setName(data.name)
+                    getPosts()
                 }
                 console.log(data)
             })
@@ -104,15 +164,15 @@ export function MainPage() {
                 console.log(err)
             })
         }
-    }, [accessToken])
+    }
 
-    useEffect(() => {
+    const getPosts = () => {
         if(name && (!data || data.length === 0)) {
             console.log('nameeeeeee', name)
             fetch(`https://oauth.reddit.com/user/${name}/saved/.json?limit=100`, {
                 method: 'get', 
                 headers: new Headers({
-                    'Authorization': `bearer ${accessToken}`,
+                    'Authorization': `bearer ${localStorage.getItem("accessToken")}`,
                     'User-Agent': 'web:com.sayvitt:1.0.0 (by /u/raresdn)'
                 })
             }).then((res) => res.json())
@@ -123,7 +183,8 @@ export function MainPage() {
                 formatSavedPostsBySubreddit(data.data.children)
             })
         }
-    }, [name])
+    }
+
     const returnSavedPosts = (data) => {
         let items = []
         if(data && data.length > 0) {
@@ -135,34 +196,6 @@ export function MainPage() {
         return []
         
     }
-
-    const returnCards = (data) => {
-        let cols = []
-        let items = []
-        if(data && data.length > 0) {
-            data.forEach((post) => {
-                cols.push(
-                <Col md={4}>
-                    <Card key={post.data.url} style={{height: '100%'}}>
-                        <Card.Body>
-                            <a href={`http://reddit.com${post.data.permalink}`}>{post.data.title}</a>
-                        </Card.Body>
-                        <Card.Footer>
-                        <Form.Group controlId="formBasicCheckbox">
-                            <Form.Check type="checkbox" label="Check me out" onChange={handleCheckBox}/>
-                        </Form.Group>
-                        </Card.Footer>
-                    </Card>
-                </Col>
-                )
-            })
-            for(let i = 0; i < cols.length - 3; i=i+3) {
-                items.push(<Row>{cols[i]}{cols[i+1]}{cols[i+2]}</Row>)
-            }
-        }
-        return items
-    }
-
     const formatSavedPostsBySubreddit = (data) => {
         let items = new Map()
         if(data && data.length > 0) {
@@ -183,7 +216,6 @@ export function MainPage() {
             })
             setSavedPostsBySubreddit(items)
         }
-        console.log(items)
     }
 
     const returnSavedPostsBySubreddit = (data) => {
@@ -193,12 +225,6 @@ export function MainPage() {
             items.push(
                 <li key={subreddit}>{subreddit} ({data.get(subreddit).posts.length} posts)</li>
             )
-            // items.push(<ol style="list-style-type: lower-alpha; padding-bottom: 0;"></ol>)
-            // data.get(subreddit).forEach(post => {
-            //     items.push(<li key={post.url} ><a href={`http://reddit.com${post.url}`}>{post.title}</a></li>)
-                
-            // })
-            // items.push(</ol>)
         })
         return items;
     }
@@ -223,7 +249,15 @@ export function MainPage() {
             </div>
             {data && 
                 <Container fluid>
-                    {returnCards(data)}
+                    <Row>
+                        <Col>
+                            <SubredditFilters 
+                                subreddits={Array.from(savedPostsBySubreddit.keys())}
+                                onToggleFilter={onToggleFilter}
+                                activeFilters={selectedFilters}/>
+                        </Col>
+                    </Row>
+                    <PostCards data={data} handleCheckBox={handleCheckBox} selectedFilters={selectedFilters} />
                 </Container>
             }
             {/* <ul>
@@ -232,12 +266,12 @@ export function MainPage() {
                 }
             </ul> */}
 
-            <ul>
+            {/* <ul>
                 {
                     savedPostsBySubreddit &&
                         returnSavedPostsBySubreddit(savedPostsBySubreddit)
                 }
-            </ul>
+            </ul> */}
         </div>
 
     )
