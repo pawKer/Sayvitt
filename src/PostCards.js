@@ -2,6 +2,7 @@ import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import { PostCard } from './PostCard';
 export const PostCards = (props) => {
     let cols = []
     let items = []
@@ -9,18 +10,12 @@ export const PostCards = (props) => {
     if(data && data.length > 0) {
         data.forEach((post) => {
             console.log(post.data)
-            let val = <Col key={post.data.url} md={4}>
-                        <Card key={post.data.url} style={{height: '100%'}}>
-                        <Card.Body>
-                            <a href={`http://reddit.com${post.data.permalink}`}>{post.data.title}</a>
-                        </Card.Body>
-                        <Card.Footer>
-                        <Form.Group controlId="formBasicCheckbox">
-                            <Form.Check type="checkbox" label="Check me out" onChange={() => props.handleCheckBox(post.data.name)}/>
-                        </Form.Group>
-                        </Card.Footer>
-                        </Card>
-                    </Col>
+            let val = <PostCard url={post.data.url}
+                                permalink={post.data.permalink}
+                                name={post.data.name}
+                                title={post.data.title}
+                                subreddit={post.data.subreddit}
+                                handleCheckBox={props.handleCheckBox} />;
             if(props.selectedFilters.length === 0)
             {
                 cols.push(val)
