@@ -6,6 +6,9 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import { SubredditFilters } from './SubredditFilters';
 import { PostCards } from './PostCards';
+import { confirmAlert } from 'react-confirm-alert';
+import Button from 'react-bootstrap/Button'; // Import
+import 'react-confirm-alert/src/react-confirm-alert.css';
 
 export function MainPage() {
     const [token, setToken] = useState(localStorage.getItem("token"))
@@ -16,6 +19,7 @@ export function MainPage() {
     const [loadingPosts, setLoadingPosts] = useState(true)
     const [savedPostsBySubreddit, setSavedPostsBySubreddit] = useState(new Map())
     const [selectedFilters, setSelectedFilters] = useState([])
+    const [selectedPosts, setSelectedPosts] = useState([])
     const locationz = useLocation();
 
     const onToggleFilter = (fil) => {
@@ -106,9 +110,7 @@ export function MainPage() {
 
     const getAccessToken = () => {
         let headers = new Headers();
-        console.log('Authorization', 'Basic ' + btoa(process.env.REACT_APP_REDDIT_API_USER + ":" + process.env.REACT_APP_REDDIT_API_SECRET))
         headers.set('Authorization', 'Basic ' + btoa(process.env.REACT_APP_REDDIT_API_USER + ":" + process.env.REACT_APP_REDDIT_API_SECRET));
-        console.log(headers)
         fetch(`https://www.reddit.com/api/v1/access_token`, {
             method: 'post',
             headers: new Headers({
@@ -141,7 +143,6 @@ export function MainPage() {
                     'User-Agent': 'web:com.sayvitt:1.0.0 (by /u/raresdn)'
                 })
             }).then((res) => {
-                console.log(res)
                 if(res.status === 200){
                     return res.json()
                 } else if (res.status === 401) {
@@ -168,7 +169,6 @@ export function MainPage() {
 
     const getPosts = () => {
         if(name && (!data || data.length === 0)) {
-            console.log('nameeeeeee', name)
             fetch(`https://oauth.reddit.com/user/${name}/saved/.json?limit=100`, {
                 method: 'get', 
                 headers: new Headers({
@@ -229,20 +229,49 @@ export function MainPage() {
         return items;
     }
 
-    const handleCheckBox = (e) => {
-        console.log("Event ", e)
-        // TODO: Move this functionality to a button
-        // fetch(`https://oauth.reddit.com/api/unsave?id=${e}`, {
-        //         method: 'post', 
-        //         headers: new Headers({
-        //             'Authorization': `bearer ${localStorage.getItem("accessToken")}`,
-        //             'User-Agent': 'web:com.sayvitt:1.0.0 (by /u/raresdn)'
-        //         })
-        //     }).then((res) => res.json())
-        //     .then(data => {
-        //         console.log(data)
-        //     })
+    const handleCheckBox = (id) => {
+        console.log("Event ", id)
+        if(selectedPosts.includes(id)) {
+            setSelectedPosts(selectedPosts.filter(e => e !== id))
+        } else {
+            setSelectedPosts(selectedPosts.concat(id))
+        }
+        console.log(selectedPosts)
     }
+
+    const handleOnClickDeleteAllSelected = (e) => {
+
+        selectedPosts.forEach(postId => {
+            fetch(`https://oauth.reddit.com/api/unsave?id=${postId}`, {
+                    method: 'post', 
+                    headers: new Headers({
+                        'Authorization': `bearer ${localStorage.getItem("accessToken")}`,
+                        'User-Agent': 'web:com.sayvitt:1.0.0 (by /u/raresdn)'
+                    })
+                }).then((res) => res.json())
+                .then(resJson => {
+                    console.log("Deleted ", postId)
+                    setData(data.filter(e => e.data.name !== postId))
+                })
+        })
+        setSelectedPosts([])
+    }
+
+    const submitDeleteSelectedSaved = () => {
+        confirmAlert({
+          title: 'Confirm to submit',
+          message: `Are you sure you want to unsave ${selectedPosts.length} posts?`,
+          buttons: [
+            {
+              label: 'Yes',
+              onClick: handleOnClickDeleteAllSelected
+            },
+            {
+              label: 'No'
+            }
+          ]
+        });
+      };
 
 
     return (
@@ -267,6 +296,9 @@ export function MainPage() {
                                 onToggleFilter={onToggleFilter}
                                 activeFilters={selectedFilters}/>
                         </Col>
+                    </Row>
+                    <Row>
+                        <Button variant="danger" className="mx-3 my-3" onClick={submitDeleteSelectedSaved} disabled={!(selectedPosts.length > 0)}>Unsave selected</Button>
                     </Row>
                     <PostCards data={data} handleCheckBox={handleCheckBox} selectedFilters={selectedFilters} />
                 </Container>

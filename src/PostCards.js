@@ -9,13 +9,14 @@ export const PostCards = (props) => {
     let data = props.data;
     if(data && data.length > 0) {
         data.forEach((post) => {
-            console.log(post.data)
+            // console.log(post.data)
             let val = <PostCard url={post.data.url}
                                 permalink={post.data.permalink}
                                 name={post.data.name}
                                 title={post.data.title}
                                 subreddit={post.data.subreddit}
-                                handleCheckBox={props.handleCheckBox} />;
+                                handleCheckBox={props.handleCheckBox}
+                                preview={post.data.preview ? post.data.preview.images[0].source.url : "https://techforluddites.com/wp-content/plugins/accelerated-mobile-pages/images/SD-default-image.png"} />;
             if(props.selectedFilters.length === 0)
             {
                 cols.push(val)
@@ -30,6 +31,7 @@ export const PostCards = (props) => {
                 items.push(<Row key={i} className="my-2">{cols[i]}{cols[i+1]}{cols[i+2]}</Row>)
             }
         } else {
+            // console.log(cols)
             items.push(<Row key={0}>{cols[0]}{cols[1]}{cols[2]}</Row>)
         }
     }
