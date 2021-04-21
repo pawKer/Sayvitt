@@ -7,18 +7,18 @@ export const PostCard = (props) => {
         var doc = new DOMParser().parseFromString(input, "text/html");
         return doc.documentElement.textContent;
     }
-    return (<Col key={props.url} md={4}>
-    <Card key={props.url} style={{height: '100%'}}>
+    return (
+        <Col>
+    <Card key={props.url}>
     <Card.Body>
         <a href={`http://reddit.com${props.permalink}`}>{props.title}</a>
         <p>r/{props.subreddit}</p>
     </Card.Body>
-    <Card.Img variant="top" src={htmlDecode(props.preview)}/>
+    <Card.Img variant="top" src={htmlDecode(props.preview)} style={{width: '100%', height: '15vw'}}/>
     <Card.Footer>
     <Form.Group controlId="formBasicCheckbox">
         <Form.Check type="checkbox" label="Check me out" onChange={() => props.handleCheckBox(props.name)}/>
     </Form.Group>
     </Card.Footer>
-    </Card>
-    </Col>);
+    </Card></Col>);
 } 

@@ -9,6 +9,7 @@ import { PostCards } from './PostCards';
 import { confirmAlert } from 'react-confirm-alert';
 import Button from 'react-bootstrap/Button'; // Import
 import 'react-confirm-alert/src/react-confirm-alert.css';
+import { CardColumns } from 'react-bootstrap';
 
 export function MainPage() {
     const [token, setToken] = useState(localStorage.getItem("token"))
@@ -252,6 +253,7 @@ export function MainPage() {
                 .then(resJson => {
                     console.log("Deleted ", postId)
                     setData(data.filter(e => e.data.name !== postId))
+                    // TODO: Delete from data aggregated by subreddit
                 })
         })
         setSelectedPosts([])
@@ -293,6 +295,7 @@ export function MainPage() {
                         <Col>
                             <SubredditFilters 
                                 subreddits={Array.from(savedPostsBySubreddit.keys())}
+                                data={savedPostsBySubreddit}
                                 onToggleFilter={onToggleFilter}
                                 activeFilters={selectedFilters}/>
                         </Col>
@@ -300,7 +303,9 @@ export function MainPage() {
                     <Row>
                         <Button variant="danger" className="mx-3 my-3" onClick={submitDeleteSelectedSaved} disabled={!(selectedPosts.length > 0)}>Unsave selected</Button>
                     </Row>
-                    <PostCards data={data} handleCheckBox={handleCheckBox} selectedFilters={selectedFilters} />
+                    <CardColumns>
+                        <PostCards data={data} handleCheckBox={handleCheckBox} selectedFilters={selectedFilters} />
+                    </CardColumns>
                 </Container>
             }
             {/* <ul>

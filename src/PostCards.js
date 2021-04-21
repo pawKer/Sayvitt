@@ -16,7 +16,8 @@ export const PostCards = (props) => {
                                 title={post.data.title}
                                 subreddit={post.data.subreddit}
                                 handleCheckBox={props.handleCheckBox}
-                                preview={post.data.preview ? post.data.preview.images[0].source.url : "https://techforluddites.com/wp-content/plugins/accelerated-mobile-pages/images/SD-default-image.png"} />;
+                                preview={post.data.preview ? post.data.preview.images[0].source.url : "https://techforluddites.com/wp-content/plugins/accelerated-mobile-pages/images/SD-default-image.png"} />
+                                ;
             if(props.selectedFilters.length === 0)
             {
                 cols.push(val)
@@ -26,14 +27,14 @@ export const PostCards = (props) => {
                 }
             }
         })
-        if(cols.length > 3) {
-            for(let i = 0; i < cols.length - 3; i=i+3) {
-                items.push(<Row key={i} className="my-2">{cols[i]}{cols[i+1]}{cols[i+2]}</Row>)
-            }
-        } else {
-            // console.log(cols)
-            items.push(<Row key={0}>{cols[0]}{cols[1]}{cols[2]}</Row>)
-        }
+        // if(cols.length > 3) {
+        //     for(let i = 0; i < cols.length - 3; i=i+3) {
+        //         items.push(<Row key={i} className="my-2">{cols[i]}{cols[i+1]}{cols[i+2]}</Row>)
+        //     }
+        // } else {
+        //     // console.log(cols)
+        //     items.push(<Row key={0}>{cols[0]}{cols[1]}{cols[2]}</Row>)
+        // }
     }
-    return items
+    return cols
 }
