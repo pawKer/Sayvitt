@@ -257,20 +257,24 @@ export function MainPage() {
 
     const handleOnClickDeleteAllSelected = (e) => {
 
-        selectedPosts.forEach(postId => {
-            fetch(`https://oauth.reddit.com/api/unsave?id=${postId}`, {
+        selectedPosts.forEach(async (postId) => {
+            let resp = await fetch(`https://oauth.reddit.com/api/unsave?id=${postId}`, {
                     method: 'post', 
                     headers: new Headers({
                         'Authorization': `bearer ${localStorage.getItem("accessToken")}`,
                         'User-Agent': 'web:com.sayvitt:1.0.0 (by /u/raresdn)'
                     })
-                }).then((res) => res.json())
-                .then(resJson => {
-                    console.log("Deleted ", postId)
-                    setData(data.filter(e => e.data.name !== postId))
-                    // TODO: Delete from data aggregated by subreddit
                 })
+            let respJson = await resp.json()
+            console.log(respJson.status, "===s=das=d=a=+++++======")
+            console.log("Deleted ", postId)
+            // TODO: Delete from data aggregated by subreddit
         })
+        let newData = data;
+        selectedPosts.forEach(postId => {
+            newData = newData.filter(item => item.data.name !== postId)
+        })
+        setData(newData)
         setSelectedPosts([])
     }
 
