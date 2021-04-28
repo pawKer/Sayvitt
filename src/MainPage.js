@@ -266,15 +266,14 @@ export function MainPage() {
                     })
                 })
             let respJson = await resp.json()
-            console.log(respJson.status, "===s=das=d=a=+++++======")
             console.log("Deleted ", postId)
-            // TODO: Delete from data aggregated by subreddit
         })
         let newData = data;
         selectedPosts.forEach(postId => {
             newData = newData.filter(item => item.data.name !== postId)
         })
         setData(newData)
+        formatSavedPostsBySubreddit(newData)
         setSelectedPosts([])
     }
 
