@@ -293,6 +293,10 @@ export function MainPage() {
         });
       };
 
+    const handleDeselectAllFilters = () => {
+        setSelectedFilters([]);
+    }
+
 
     return (
         <div className="App">
@@ -312,6 +316,9 @@ export function MainPage() {
             </div>
             {(!loadingPosts && data) && 
                 <Container fluid>
+                    <Row>
+                        <Button variant="primary" className="mx-3 my-3" onClick={handleDeselectAllFilters} disabled={!(selectedFilters.length > 0)}>Clear all filters</Button>
+                    </Row>
                     <Row>
                         <Col>
                             <SubredditFilters 
