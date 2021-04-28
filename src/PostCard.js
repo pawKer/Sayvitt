@@ -9,7 +9,7 @@ export const PostCard = (props) => {
     }
     return (
         <Col>
-    <Card key={props.url}>
+    <Card>
     <Card.Body>
         <a href={`http://reddit.com${props.permalink}`}>{props.title}</a>
         <p>r/{props.subreddit}</p>

@@ -21,6 +21,7 @@ export function MainPage() {
     const [savedPostsBySubreddit, setSavedPostsBySubreddit] = useState(new Map())
     const [selectedFilters, setSelectedFilters] = useState([])
     const [selectedPosts, setSelectedPosts] = useState([])
+    const [afterPost, setAfterPost] = useState(null)
     const locationz = useLocation();
 
     const onToggleFilter = (fil) => {
@@ -168,21 +169,35 @@ export function MainPage() {
         }
     }
 
-    const getPosts = () => {
+    const getPosts = async () => {
         if(name && (!data || data.length === 0)) {
-            fetch(`https://oauth.reddit.com/user/${name}/saved/.json?limit=100`, {
-                method: 'get', 
-                headers: new Headers({
-                    'Authorization': `bearer ${localStorage.getItem("accessToken")}`,
-                    'User-Agent': 'web:com.sayvitt:1.0.0 (by /u/raresdn)'
+            let gotAll = false;
+            let after = null;
+            while(!gotAll) {
+                let resp = await fetch(`https://oauth.reddit.com/user/${name}/saved/.json?after=${after}&limit=100`, {
+                    method: 'get', 
+                    headers: new Headers({
+                        'Authorization': `bearer ${localStorage.getItem("accessToken")}`,
+                        'User-Agent': 'web:com.sayvitt:1.0.0 (by /u/raresdn)'
+                    })
                 })
-            }).then((res) => res.json())
-            .then(data => {
-                setData(data.data.children)
-                setLoadingPosts(false)
+                let responseData = await resp.json()
+                let newData = data;
+                newData.push(...responseData.data.children)
+                setData(newData)
+                formatSavedPostsBySubreddit(newData)            
                 console.log(data)
-                formatSavedPostsBySubreddit(data.data.children)
-            })
+                if(responseData.data.children[responseData.data.children.length-1] === undefined) {
+                    gotAll = true;
+                    break;
+                }
+
+                let newAfter = responseData.data.children[responseData.data.children.length-1].data.name;
+                if(newAfter !== after){
+                    after = newAfter
+                }
+            }
+            setLoadingPosts(false)
         }
     }
 
@@ -279,17 +294,20 @@ export function MainPage() {
     return (
         <div className="App">
             <div>
-                {name && <h1>Hello, {name}</h1>}
+                {name ? <h1>Hello, <i>{name}</i>!</h1> : <h1>Hello!</h1>}
                 {loadingPosts ? (
-                    <Spinner animation="border" role="status">
-                        <span className="sr-only">Loading...</span>
-                    </Spinner>
+                    <div>
+                        <h3>Loading your saved posts...</h3>
+                        <Spinner animation="border" role="status">
+                            <span className="sr-only">Loading...</span>
+                        </Spinner>
+                    </div>
                 )
                     :
                     <h3>Your saved posts: </h3>
                 }
             </div>
-            {data && 
+            {(!loadingPosts && data) && 
                 <Container fluid>
                     <Row>
                         <Col>

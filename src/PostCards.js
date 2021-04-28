@@ -10,7 +10,8 @@ export const PostCards = (props) => {
     if(data && data.length > 0) {
         data.forEach((post) => {
             // console.log(post.data)
-            let val = <PostCard url={post.data.url}
+            let val = <PostCard key={post.data.url}
+                                url={post.data.url}
                                 permalink={post.data.permalink}
                                 name={post.data.name}
                                 title={post.data.title}
