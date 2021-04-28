@@ -275,6 +275,7 @@ export function MainPage() {
         setData(newData)
         formatSavedPostsBySubreddit(newData)
         setSelectedPosts([])
+        clearAllFilters()
     }
 
     const submitDeleteSelectedSaved = () => {
@@ -293,7 +294,7 @@ export function MainPage() {
         });
       };
 
-    const handleDeselectAllFilters = () => {
+    const clearAllFilters = () => {
         setSelectedFilters([]);
     }
 
@@ -317,7 +318,7 @@ export function MainPage() {
             {(!loadingPosts && data) && 
                 <Container fluid>
                     <Row>
-                        <Button variant="primary" className="mx-3 my-3" onClick={handleDeselectAllFilters} disabled={!(selectedFilters.length > 0)}>Clear all filters</Button>
+                        <Button variant="primary" className="mx-3 my-3" onClick={clearAllFilters} disabled={!(selectedFilters.length > 0)}>Clear all filters</Button>
                     </Row>
                     <Row>
                         <Col>
