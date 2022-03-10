@@ -179,12 +179,12 @@ export function MainPage() {
     }
   };
 
-  const handleCheckBox = (id) => {
-    console.log('Event ', id);
-    if (selectedPosts.includes(id)) {
-      setSelectedPosts(selectedPosts.filter((e) => e !== id));
-    } else {
+  const handleCheckBox = (e, id) => {
+    console.log('Event ', e, id);
+    if (!selectedPosts.includes(id)) {
       setSelectedPosts(selectedPosts.concat(id));
+    } else {
+      setSelectedPosts(selectedPosts.filter((e) => e !== id));
     }
     console.log(selectedPosts);
   };
@@ -243,19 +243,45 @@ export function MainPage() {
     setSelectedFilters([]);
   };
 
+  const logout = () => {
+    setLoggedIn(false);
+    setName(undefined);
+    setData([]);
+    setSavedPostsBySubreddit(new Map());
+    setLoadingPosts(false);
+    localStorage.clear();
+  };
+
+  const clearAllSelections = () => {
+    setSelectedPosts([]);
+  };
+
   return (
     <div className="App">
       <div>
         {name ? (
           <h1>
             Hello,{' '}
-            <a href={`https://www.reddit.com/user/${name}`} target="_blank" rel="noreferrer">
+            <a
+              href={`https://www.reddit.com/user/${name}`}
+              target="_blank"
+              rel="noreferrer"
+            >
               <i>{name}</i>
             </a>
             !
           </h1>
         ) : (
           <h1>Hello!</h1>
+        )}
+        {loggedIn && (
+          <Button
+            variant="outline-primary"
+            className="mx-3 my-3"
+            onClick={logout}
+          >
+            Logout
+          </Button>
         )}
         <HeaderComp
           loadingPosts={loadingPosts}
@@ -287,6 +313,14 @@ export function MainPage() {
           </Row>
           <Row>
             <Button
+              variant="primary"
+              className="mx-3 my-3"
+              onClick={clearAllSelections}
+              disabled={!(selectedPosts.length > 0)}
+            >
+              Clear selections
+            </Button>
+            <Button
               variant="danger"
               className="mx-3 my-3"
               onClick={submitDeleteSelectedSaved}
@@ -300,6 +334,7 @@ export function MainPage() {
               data={data}
               handleCheckBox={handleCheckBox}
               selectedFilters={selectedFilters}
+              selectedPosts={selectedPosts}
             />
           </CardColumns>
         </Container>

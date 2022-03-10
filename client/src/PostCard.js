@@ -8,7 +8,15 @@ export const PostCard = (props) => {
   };
   return (
     <Col key={props.permalink}>
-      <Card key={props.permalink}>
+      <Card
+        key={props.permalink}
+        className={'postCard'}
+        style={{
+          backgroundColor:
+            props.selectedPosts.includes(props.name) && '#ffd8bd',
+        }}
+        onClick={(e) => props.handleCheckBox(e, props.name)}
+      >
         <Card.Body>
           <a
             href={`http://reddit.com${props.permalink}`}
@@ -19,18 +27,21 @@ export const PostCard = (props) => {
           </a>
           <p>r/{props.subreddit}</p>
         </Card.Body>
-        <Card.Img
-          variant="top"
-          src={htmlDecode(props.preview)}
-          style={{ width: '100%', height: '15vw' }}
-        />
+        {props.preview && (
+          <Card.Img
+            variant="top"
+            src={htmlDecode(props.preview)}
+            style={{ width: '100%', height: '15vw' }}
+          />
+        )}
         <Card.Footer>
           <Form.Group controlId="formBasicCheckbox">
-            <Form.Check
+            {/* <Form.Check
               type="checkbox"
               label="Select"
-              onChange={() => props.handleCheckBox(props.name)}
-            />
+              checked={props.selectedPosts.includes(props.name)}
+              onChange={(e) => props.handleCheckBox(e, props.name)}
+            /> */}
           </Form.Group>
           <small className="text-muted">#{props.index}</small>
         </Card.Footer>

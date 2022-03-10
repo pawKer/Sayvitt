@@ -14,12 +14,9 @@ export const PostCards = (props) => {
           title={post.data.title}
           subreddit={post.data.subreddit}
           handleCheckBox={props.handleCheckBox}
+          selectedPosts={props.selectedPosts}
           index={i}
-          preview={
-            post.data.preview
-              ? post.data.preview.images[0].source.url
-              : 'https://techforluddites.com/wp-content/plugins/accelerated-mobile-pages/images/SD-default-image.png'
-          }
+          preview={post.data.preview && post.data.preview.images[0].source.url}
         />
       );
       if (props.selectedFilters.length === 0) {

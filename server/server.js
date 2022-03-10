@@ -5,9 +5,16 @@ import { fileURLToPath } from 'url';
 import api from './routes/routes.js';
 import dotenv from 'dotenv';
 
-dotenv.config();
-
 const dirnameNew = dirname(fileURLToPath(import.meta.url));
+
+if (process.env.NODE_ENV !== 'production') {
+  console.log('loads');
+  dotenv.config({ path: join(dirnameNew, '../.env.local') });
+} else {
+  dotenv.config();
+}
+
+console.log(process.env.REDDIT_API_USER);
 // Create a new express application named 'app'
 const app = express();
 
