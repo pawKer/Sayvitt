@@ -18,12 +18,12 @@
   },
   "scripts": {
     "start": "react-scripts --openssl-legacy-provider start",
-    "build": "react-scripts --openssl-legacy-provider build",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
   "engines": {
-    "node": "0.16.x"
+    "node": "16.x"
   },
   "proxy": "http://localhost:5000",
   "eslintConfig": {
