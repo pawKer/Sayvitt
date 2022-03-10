@@ -12,3 +12,38 @@
 .postCard:hover {
   box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
 }
+
+.my-masonry-grid {
+  display: -webkit-box; /* Not needed if autoprefixing */
+  display: -ms-flexbox; /* Not needed if autoprefixing */
+  display: flex;
+  margin-left: 0px; /* gutter size offset */
+  width: auto;
+}
+.my-masonry-grid_column {
+  padding-left: 0px; /* gutter size */
+  background-clip: padding-box;
+}
+
+/* Style your items */
+.my-masonry-grid_column > div {
+  margin-bottom: 15px;
+}
+
+.cardBody {
+  text-align: left;
+}
+
+.cardTitle {
+  color: black;
+  font-weight: 500;
+}
+
+.cardSubtitle {
+  color: gray;
+}
+
+.description {
+  font-weight: 200;
+  font-size: small;
+}

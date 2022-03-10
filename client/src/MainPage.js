@@ -1,22 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useHistory } from 'react-router-dom';
-
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import { SubredditFilters } from './SubredditFilters';
-import { PostCards } from './PostCards';
+import { PostCard } from './PostCard';
 import { HeaderComp } from './HeaderComp';
 import { confirmAlert } from 'react-confirm-alert';
 import Button from 'react-bootstrap/Button';
 import 'react-confirm-alert/src/react-confirm-alert.css';
-import { CardColumns } from 'react-bootstrap';
+import { InputGroup, FormControl } from 'react-bootstrap';
+import Masonry from 'react-masonry-css';
 
 export function MainPage() {
   const [code, setCode] = useState();
   const [accessToken, setAccessToken] = useState();
   const [loggedIn, setLoggedIn] = useState(false);
   const [name, setName] = useState('');
+  const [searchTerm, setSearchTerm] = useState();
   const [data, setData] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [savedPostsBySubreddit, setSavedPostsBySubreddit] = useState(new Map());
@@ -34,7 +35,6 @@ export function MainPage() {
   };
 
   useEffect(() => {
-    console.log(data);
     console.log(localStorage.getItem('accessToken'));
     console.log(localStorage.getItem('tokenExpired'));
     if (
@@ -256,6 +256,81 @@ export function MainPage() {
     setSelectedPosts([]);
   };
 
+  const searchOnChange = (e) => {
+    if (e.target.value) setSearchTerm(e.target.value.toLowerCase());
+  };
+
+  const postMatchesSearch = (post) => {
+    if (!searchTerm) return true;
+
+    let matches = false;
+
+    if (post.title)
+      matches = matches || post.title.toLowerCase().includes(searchTerm);
+    if (matches) return true;
+
+    if (post.selftext)
+      matches = matches || post.selftext.toLowerCase().includes(searchTerm);
+    if (matches) return true;
+
+    if (post.subreddit)
+      matches = matches || post.subreddit.toLowerCase().includes(searchTerm);
+    if (matches) return true;
+
+    if (post.author)
+      matches = matches || post.author.toLowerCase().includes(searchTerm);
+    if (matches) return true;
+
+    return matches;
+  };
+
+  const getCards = () => {
+    let cols = [];
+    if (data && data.length > 0) {
+      let i = data.length;
+      data.forEach((post) => {
+        let val = (
+          <PostCard
+            key={post.data.permalink}
+            url={post.data.url}
+            permalink={post.data.permalink}
+            name={post.data.name}
+            title={post.data.title}
+            date={post.data.created}
+            author={post.data.author}
+            description={post.data.selftext}
+            subreddit={post.data.subreddit}
+            handleCheckBox={handleCheckBox}
+            selectedPosts={selectedPosts}
+            index={i}
+            preview={
+              post.data.preview && post.data.preview.images[0].source.url
+            }
+          />
+        );
+        let shouldAdd = false;
+        if (selectedFilters.length === 0) {
+          shouldAdd = true;
+        } else {
+          if (selectedFilters.includes(post.data.subreddit.trim())) {
+            shouldAdd = true;
+          }
+        }
+
+        if (!postMatchesSearch(post.data)) {
+          shouldAdd = false;
+        }
+
+        if (shouldAdd) {
+          cols.push(val);
+        }
+        i--;
+      });
+    }
+
+    return cols;
+  };
+
   return (
     <div className="App">
       <div>
@@ -290,18 +365,31 @@ export function MainPage() {
         ></HeaderComp>
       </div>
       {data.length > 0 && (
-        <Container fluid>
+        <Container fluid="md">
           <Row>
-            <Button
-              variant="primary"
-              className="mx-3 my-3"
-              onClick={clearAllFilters}
-              disabled={!(selectedFilters.length > 0)}
-            >
-              Clear all filters
-            </Button>
+            <Col>
+              <InputGroup>
+                <FormControl
+                  style={{ borderRadius: '10px' }}
+                  placeholder="Search saved posts..."
+                  onChange={searchOnChange}
+                />
+              </InputGroup>
+            </Col>
           </Row>
-          <Row>
+          {selectedFilters.length > 0 && (
+            <Row>
+              <Button
+                variant="primary"
+                className="mx-auto mt-3"
+                onClick={clearAllFilters}
+                disabled={!(selectedFilters.length > 0)}
+              >
+                Clear all filters
+              </Button>
+            </Row>
+          )}
+          <Row className="mx-auto my-3">
             <Col>
               <SubredditFilters
                 subreddits={Array.from(savedPostsBySubreddit.keys())}
@@ -311,32 +399,39 @@ export function MainPage() {
               />
             </Col>
           </Row>
-          <Row>
-            <Button
-              variant="primary"
-              className="mx-3 my-3"
-              onClick={clearAllSelections}
-              disabled={!(selectedPosts.length > 0)}
-            >
-              Clear selections
-            </Button>
-            <Button
-              variant="danger"
-              className="mx-3 my-3"
-              onClick={submitDeleteSelectedSaved}
-              disabled={!(selectedPosts.length > 0)}
-            >
-              Unsave selected
-            </Button>
-          </Row>
-          <CardColumns>
-            <PostCards
-              data={data}
-              handleCheckBox={handleCheckBox}
-              selectedFilters={selectedFilters}
-              selectedPosts={selectedPosts}
-            />
-          </CardColumns>
+          {selectedPosts.length > 0 && (
+            <Row className="mx-auto mb-3">
+              <Col>
+                <Button
+                  variant="primary"
+                  onClick={clearAllSelections}
+                  disabled={!(selectedPosts.length > 0)}
+                >
+                  Clear selections
+                </Button>
+                <Button
+                  variant="danger"
+                  className="ml-3"
+                  onClick={submitDeleteSelectedSaved}
+                  disabled={!(selectedPosts.length > 0)}
+                >
+                  Unsave selected
+                </Button>
+              </Col>
+            </Row>
+          )}
+          <Masonry
+            breakpointCols={{
+              default: 3,
+              1100: 2,
+              700: 2,
+              500: 1,
+            }}
+            className="my-masonry-grid"
+            columnClassName="my-masonry-grid_column"
+          >
+            {getCards().map((col) => col)}
+          </Masonry>
         </Container>
       )}
     </div>

@@ -1,6 +1,6 @@
 import Card from 'react-bootstrap/Card';
-import Form from 'react-bootstrap/Form';
 import Col from 'react-bootstrap/Col';
+import prettyMilliseconds from 'pretty-ms';
 export const PostCard = (props) => {
   const htmlDecode = (input) => {
     var doc = new DOMParser().parseFromString(input, 'text/html');
@@ -17,33 +17,47 @@ export const PostCard = (props) => {
         }}
         onClick={(e) => props.handleCheckBox(e, props.name)}
       >
-        <Card.Body>
+        <Card.Body className={'cardBody'}>
           <a
             href={`http://reddit.com${props.permalink}`}
             target="_blank"
             rel="noreferrer"
+            className={'cardTitle'}
           >
             {props.title}
           </a>
-          <p>r/{props.subreddit}</p>
+          <p className={'cardSubtitle'}>r/{props.subreddit}</p>
+          {props.description && props.description !== '[removed]' && (
+            <p className={'description'}>
+              {props.description.substring(0, 200)}
+              {props.description.length > 200 && '...'}
+            </p>
+          )}
         </Card.Body>
         {props.preview && (
-          <Card.Img
-            variant="top"
-            src={htmlDecode(props.preview)}
-            style={{ width: '100%', height: '15vw' }}
-          />
+          <a href={htmlDecode(props.preview)} target="_blank" rel="noreferrer">
+            <Card.Img
+              variant="top"
+              src={htmlDecode(props.preview)}
+              style={{ width: '100%' }}
+            />
+          </a>
         )}
         <Card.Footer>
-          <Form.Group controlId="formBasicCheckbox">
-            {/* <Form.Check
+          {/*<Form.Group controlId="formBasicCheckbox">
+             <Form.Check
               type="checkbox"
               label="Select"
               checked={props.selectedPosts.includes(props.name)}
               onChange={(e) => props.handleCheckBox(e, props.name)}
-            /> */}
-          </Form.Group>
-          <small className="text-muted">#{props.index}</small>
+            /> 
+          </Form.Group>*/}
+          <small className="text-muted">
+            #{props.index}・u/{props.author}・
+            {prettyMilliseconds(Date.now() - props.date * 1000, {
+              compact: true,
+            })}
+          </small>
         </Card.Footer>
       </Card>
     </Col>
