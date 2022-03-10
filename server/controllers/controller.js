@@ -61,6 +61,10 @@ const Controller = () => {
     if (!req.body.name) {
       return res.status(500).json({ error: 'name param is empty' });
     }
+    if (!req.body.accessToken) {
+      return res.status(500).json({ error: 'access token is empty' });
+    }
+
     while (!gotAll) {
       let resp = await fetch(
         `https://oauth.reddit.com/user/${req.body.name}/saved/.json?after=${after}&limit=100`,
@@ -76,7 +80,6 @@ const Controller = () => {
       let newData = data;
       newData.push(...responseData.data.children);
       data = newData;
-      break;
       if (
         responseData.data.children[responseData.data.children.length - 1] ===
         undefined
@@ -95,10 +98,40 @@ const Controller = () => {
     return res.status(200).json(data);
   };
 
+  const unsavePost = async (req, res) => {
+    const postId = req.body.postId;
+
+    if (!postId) {
+      return res.status(500).json({ error: 'postId is empty' });
+    }
+
+    if (!req.body.accessToken) {
+      return res.status(500).json({ error: 'access token is empty' });
+    }
+
+    let resp = await fetch(`https://oauth.reddit.com/api/unsave?id=${postId}`, {
+      method: 'post',
+      headers: {
+        Authorization: `bearer ${req.body.accessToken}`,
+        'User-Agent': 'web:com.sayvitt:1.0.0 (by /u/raresdn)',
+      },
+    });
+
+    if (resp.status === 200) {
+      const resData = await resp.json();
+      return res.status(200).json({ data: resData });
+    } else if (resp.status === 401) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    } else {
+      return res.status(resp.status).json({ error: 'Server error' });
+    }
+  };
+
   return {
     getAccesToken,
     getProfile,
     getSavedPosts,
+    unsavePost,
   };
 };
 

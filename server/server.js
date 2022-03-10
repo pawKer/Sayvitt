@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import { join, dirname } from 'path';
-import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'url';
 import api from './routes/routes.js';
 import dotenv from 'dotenv';

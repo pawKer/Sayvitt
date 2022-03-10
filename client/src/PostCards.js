@@ -3,8 +3,8 @@ export const PostCards = (props) => {
   let cols = [];
   let data = props.data;
   if (data && data.length > 0) {
+    let i = data.length;
     data.forEach((post) => {
-      // console.log(post.data)
       let val = (
         <PostCard
           key={post.data.permalink}
@@ -14,6 +14,7 @@ export const PostCards = (props) => {
           title={post.data.title}
           subreddit={post.data.subreddit}
           handleCheckBox={props.handleCheckBox}
+          index={i}
           preview={
             post.data.preview
               ? post.data.preview.images[0].source.url
@@ -28,6 +29,7 @@ export const PostCards = (props) => {
           cols.push(val);
         }
       }
+      i--;
     });
     // if(cols.length > 3) {
     //     for(let i = 0; i < cols.length - 3; i=i+3) {

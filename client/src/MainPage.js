@@ -12,7 +12,6 @@ import Button from 'react-bootstrap/Button';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import { CardColumns } from 'react-bootstrap';
 
-
 export function MainPage() {
   const [code, setCode] = useState();
   const [accessToken, setAccessToken] = useState();
@@ -84,7 +83,7 @@ export function MainPage() {
 
   const getAccessToken = async (codeParam) => {
     console.log(codeParam);
-    return fetch(`http://localhost:5000/api/v1/accessToken`, {
+    return fetch(`/api/v1/accessToken`, {
       method: 'post',
       headers: {
         Accept: 'application/json',
@@ -108,7 +107,7 @@ export function MainPage() {
   const getProfileData = async (accessTokenParam) => {
     // NOW USE THE TOKEN TO GET DATA
     console.log(accessTokenParam, 'YEEEEE');
-    return fetch('http://localhost:5000/api/v1/getProfile', {
+    return fetch('/api/v1/getProfile', {
       method: 'post',
       headers: {
         Accept: 'application/json',
@@ -141,7 +140,7 @@ export function MainPage() {
   const getPosts = async (accessTokenParam, nameParam) => {
     console.log('GOTCHANAME', nameParam);
     setLoadingPosts(true);
-    let resp = await fetch(`http://localhost:5000/api/v1/getSavedPosts`, {
+    let resp = await fetch(`/api/v1/getSavedPosts`, {
       method: 'post',
       headers: {
         Accept: 'application/json',
@@ -159,22 +158,6 @@ export function MainPage() {
     setLoadingPosts(false);
   };
 
-  const returnSavedPosts = (data) => {
-    let items = [];
-    if (data && data.length > 0) {
-      data.forEach((post) => {
-        items.push(
-          <li key={post.data.url}>
-            <a href={`http://reddit.com${post.data.permalink}`}>
-              {post.data.title}
-            </a>
-          </li>
-        );
-      });
-      return items;
-    }
-    return [];
-  };
   const formatSavedPostsBySubreddit = (data) => {
     let items = new Map();
     if (data && data.length > 0) {
@@ -196,19 +179,6 @@ export function MainPage() {
     }
   };
 
-  const returnSavedPostsBySubreddit = (data) => {
-    let items = [];
-    let keyArray = Array.from(data.keys());
-    keyArray.forEach((subreddit) => {
-      items.push(
-        <li key={subreddit}>
-          {subreddit} ({data.get(subreddit).posts.length} posts)
-        </li>
-      );
-    });
-    return items;
-  };
-
   const handleCheckBox = (id) => {
     console.log('Event ', id);
     if (selectedPosts.includes(id)) {
@@ -220,29 +190,37 @@ export function MainPage() {
   };
 
   const handleOnClickDeleteAllSelected = (e) => {
-    // TODO: UPDATE TO USE API
-    // selectedPosts.forEach(async (postId) => {
-    //   let resp = await fetch(
-    //     `https://oauth.reddit.com/api/unsave?id=${postId}`,
-    //     {
-    //       method: 'post',
-    //       headers: new Headers({
-    //         Authorization: `bearer ${localStorage.getItem('accessToken')}`,
-    //         'User-Agent': 'web:com.sayvitt:1.0.0 (by /u/raresdn)',
-    //       }),
-    //     }
-    //   );
-    //   let respJson = await resp.json();
-    //   console.log('Deleted ', postId);
-    // });
-    // let newData = data;
-    // selectedPosts.forEach((postId) => {
-    //   newData = newData.filter((item) => item.data.name !== postId);
-    // });
-    // setData(newData);
-    // formatSavedPostsBySubreddit(newData);
-    // setSelectedPosts([]);
-    // clearAllFilters();
+    selectedPosts.forEach(async (postId) => {
+      let resp = await fetch(`/api/v1/unsavePost`, {
+        method: 'post',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          postId,
+          accessToken: localStorage.getItem('accessToken'),
+        }),
+      });
+
+      if (resp.status === 401) {
+        localStorage.setItem('tokenExpired', true);
+        return loginWithReddit();
+      }
+
+      let respJson = await resp.json();
+      console.log(respJson);
+      console.log('Deleted ', postId);
+    });
+
+    let newData = data;
+    selectedPosts.forEach((postId) => {
+      newData = newData.filter((item) => item.data.name !== postId);
+    });
+    setData(newData);
+    formatSavedPostsBySubreddit(newData);
+    setSelectedPosts([]);
+    clearAllFilters();
   };
 
   const submitDeleteSelectedSaved = () => {
@@ -270,7 +248,11 @@ export function MainPage() {
       <div>
         {name ? (
           <h1>
-            Hello, <i>{name}</i>!
+            Hello,{' '}
+            <a href={`https://www.reddit.com/user/${name}`} target="_blank" rel="noreferrer">
+              <i>{name}</i>
+            </a>
+            !
           </h1>
         ) : (
           <h1>Hello!</h1>
@@ -322,18 +304,6 @@ export function MainPage() {
           </CardColumns>
         </Container>
       )}
-      {/* <ul>
-                {data && 
-                    returnSavedPosts(data)
-                }
-            </ul> */}
-
-      {/* <ul>
-                {
-                    savedPostsBySubreddit &&
-                        returnSavedPostsBySubreddit(savedPostsBySubreddit)
-                }
-            </ul> */}
     </div>
   );
 }

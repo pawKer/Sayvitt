@@ -10,7 +10,13 @@ export const PostCard = (props) => {
     <Col key={props.permalink}>
       <Card key={props.permalink}>
         <Card.Body>
-          <a href={`http://reddit.com${props.permalink}`}>{props.title}</a>
+          <a
+            href={`http://reddit.com${props.permalink}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {props.title}
+          </a>
           <p>r/{props.subreddit}</p>
         </Card.Body>
         <Card.Img
@@ -22,10 +28,11 @@ export const PostCard = (props) => {
           <Form.Group controlId="formBasicCheckbox">
             <Form.Check
               type="checkbox"
-              label="Check me out"
+              label="Select"
               onChange={() => props.handleCheckBox(props.name)}
             />
           </Form.Group>
+          <small className="text-muted">#{props.index}</small>
         </Card.Footer>
       </Card>
     </Col>

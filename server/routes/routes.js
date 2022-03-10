@@ -13,4 +13,6 @@ router.post('/getProfile', middleware, controller.getProfile);
 
 router.post('/getSavedPosts', middleware, controller.getSavedPosts);
 
+router.post('/unsavePost', middleware, controller.unsavePost);
+
 export default router;
