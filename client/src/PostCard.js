@@ -32,7 +32,7 @@ export const PostCard = (props) => {
               <>
                 ・
                 <a href={props.url} style={{ color: 'gray' }}>
-                  {props.url.split('/')[2]}
+                  {props.url.split('/')[2].replace('www.', '')}
                 </a>
               </>
             )}
