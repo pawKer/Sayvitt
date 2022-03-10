@@ -31,7 +31,12 @@ export const PostCard = (props) => {
             {!props.description && props.url && (
               <>
                 ・
-                <a href={props.url} style={{ color: 'gray' }}>
+                <a
+                  href={props.url}
+                  style={{ color: 'gray' }}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   {props.url.split('/')[2].replace('www.', '')}
                 </a>
               </>
