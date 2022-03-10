@@ -34,13 +34,12 @@ if (
   process.env.NODE_ENV === 'production' ||
   process.env.NODE_ENV === 'staging'
 ) {
-  app.use(express.static(join(dirnameNew, '../../client/build')));
+  app.use(express.static(join(dirnameNew, '../client/build')));
 
   app.get('*', (req, res) => {
-    res.sendFile(join(dirnameNew, '../../client/build', 'index.html'));
+    res.sendFile(join(dirnameNew, '../client/build', 'index.html'));
   });
 }
-
 // Catch any bad requests
 app.get('*', (req, res) => {
   res.status(200).json({
