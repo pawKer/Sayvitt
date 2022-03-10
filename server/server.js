@@ -8,7 +8,6 @@ import dotenv from 'dotenv';
 const dirnameNew = dirname(fileURLToPath(import.meta.url));
 
 if (process.env.NODE_ENV !== 'production') {
-  console.log('loads');
   dotenv.config({ path: join(dirnameNew, '../.env.local') });
 } else {
   dotenv.config();

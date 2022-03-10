@@ -35,8 +35,6 @@ export function MainPage() {
   };
 
   useEffect(() => {
-    console.log(localStorage.getItem('accessToken'));
-    console.log(localStorage.getItem('tokenExpired'));
     if (
       localStorage.getItem('accessToken') &&
       data.length === 0 &&
@@ -54,7 +52,6 @@ export function MainPage() {
       if (searchParams.get('code') && !code) {
         setCode(searchParams.get('code'));
         getAccessToken(searchParams.get('code')).then(async (token) => {
-          console.log('KKKK', token);
           localStorage.setItem('tokenExpired', false);
           const nameRes = await getProfileData(token);
           await getPosts(token, nameRes);
@@ -76,13 +73,11 @@ export function MainPage() {
       .substring(2)}&redirect_uri=${
       process.env.REACT_APP_URI
     }&duration=temporary&scope=identity,history,save`;
-    console.log(redirect_url);
     localStorage.setItem('redirected', true);
     window.location.replace(redirect_url);
   };
 
   const getAccessToken = async (codeParam) => {
-    console.log(codeParam);
     return fetch(`/api/v1/accessToken`, {
       method: 'post',
       headers: {
@@ -95,7 +90,6 @@ export function MainPage() {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
         setAccessToken(data.token);
         localStorage.setItem('accessToken', data.token);
         return data.token;
@@ -106,7 +100,6 @@ export function MainPage() {
   };
   const getProfileData = async (accessTokenParam) => {
     // NOW USE THE TOKEN TO GET DATA
-    console.log(accessTokenParam, 'YEEEEE');
     return fetch('/api/v1/getProfile', {
       method: 'post',
       headers: {
@@ -180,13 +173,11 @@ export function MainPage() {
   };
 
   const handleCheckBox = (e, id) => {
-    console.log('Event ', e, id);
     if (!selectedPosts.includes(id)) {
       setSelectedPosts(selectedPosts.concat(id));
     } else {
       setSelectedPosts(selectedPosts.filter((e) => e !== id));
     }
-    console.log(selectedPosts);
   };
 
   const handleOnClickDeleteAllSelected = (e) => {
@@ -209,7 +200,6 @@ export function MainPage() {
       }
 
       let respJson = await resp.json();
-      console.log(respJson);
       console.log('Deleted ', postId);
     });
 
