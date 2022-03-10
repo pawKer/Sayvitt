@@ -9,7 +9,7 @@
     "server": "nodemon",
     "start": "node build/server/server.js",
     "dev": "concurrently --kill-others-on-fail \"npm run client\" \"npm run server\"",
-    "build": "tsc && npm run build:client",
+    "build": "npm run build:client",
     "build:client": "cd client && npm install && npm run build",
     "lint": "eslint . --ext .ts",
     "prettier:client": "cd client && npm run prettier",
