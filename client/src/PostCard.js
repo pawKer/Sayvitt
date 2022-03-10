@@ -26,7 +26,17 @@ export const PostCard = (props) => {
           >
             {props.title}
           </a>
-          <p className={'cardSubtitle'}>r/{props.subreddit}</p>
+          <p className={'cardSubtitle'}>
+            r/{props.subreddit}
+            {!props.description && props.url && (
+              <>
+                ・
+                <a href={props.url} style={{ color: 'gray' }}>
+                  {props.url.split('/')[2]}
+                </a>
+              </>
+            )}
+          </p>
           {props.description && props.description !== '[removed]' && (
             <p className={'description'}>
               {props.description.substring(0, 200)}
@@ -34,11 +44,15 @@ export const PostCard = (props) => {
             </p>
           )}
         </Card.Body>
-        {props.preview && (
-          <a href={htmlDecode(props.preview)} target="_blank" rel="noreferrer">
+        {(props.preview || props.thumbnail) && (
+          <a
+            href={htmlDecode(props.preview || props.thumbnail)}
+            target="_blank"
+            rel="noreferrer"
+          >
             <Card.Img
               variant="top"
-              src={htmlDecode(props.preview)}
+              src={htmlDecode(props.preview || props.thumbnail)}
               style={{ width: '100%' }}
             />
           </a>
