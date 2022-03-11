@@ -322,8 +322,6 @@ export function MainPage() {
         if (filteredPosts.length === 0) {
           if (searchParam) {
             shouldAdd = false;
-          } else {
-            shouldAdd = true;
           }
         } else {
           if (!filteredPosts.includes(post.data.id)) {
