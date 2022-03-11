@@ -23,11 +23,12 @@ export function MainPage() {
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [selectedPosts, setSelectedPosts] = useState([]);
+  const [searchParam, setSearchParam] = useState('');
   const locationz = useLocation();
   const history = useHistory();
 
   const debounceSearch = useCallback(
-    debounce((searchTerm, data) => findMatches(searchTerm, data), 1000),
+    debounce((searchTerm, data) => findMatches(searchTerm, data), 300),
     [] // will be created only once initially
   );
 
@@ -260,6 +261,13 @@ export function MainPage() {
   };
 
   const findMatches = (searchTerm, data) => {
+    setSearchParam(searchTerm);
+    if (searchTerm) {
+      searchTerm = searchTerm.toLowerCase();
+    } else {
+      setFilteredPosts([]);
+      return;
+    }
     console.log('called', searchTerm);
     setFilteredPosts(
       data
@@ -269,11 +277,7 @@ export function MainPage() {
   };
 
   const searchOnChange = (e) => {
-    if (e.target.value) {
-      debounceSearch(e.target.value.toLowerCase(), data);
-    } else {
-      setFilteredPosts([]);
-    }
+    debounceSearch(e.target.value, data);
   };
 
   const postMatchesSearch = (searchTerm, post) => {
@@ -316,7 +320,11 @@ export function MainPage() {
         }
 
         if (filteredPosts.length === 0) {
-          shouldAdd = true;
+          if (searchParam) {
+            shouldAdd = false;
+          } else {
+            shouldAdd = true;
+          }
         } else {
           if (!filteredPosts.includes(post.data.id)) {
             shouldAdd = false;
@@ -408,7 +416,7 @@ export function MainPage() {
                   style={{ borderRadius: '10px' }}
                   id="basic-addon2"
                 >
-                  {filteredPosts.length === 0
+                  {filteredPosts.length === 0 && !searchParam
                     ? data.length
                     : filteredPosts.length}
                 </InputGroup.Text>
