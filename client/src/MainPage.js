@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useLocation, useHistory } from 'react-router-dom';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -7,24 +7,29 @@ import { SubredditFilters } from './SubredditFilters';
 import { PostCard } from './PostCard';
 import { HeaderComp } from './HeaderComp';
 import { confirmAlert } from 'react-confirm-alert';
-import Button from 'react-bootstrap/Button';
 import 'react-confirm-alert/src/react-confirm-alert.css';
-import { InputGroup, FormControl } from 'react-bootstrap';
+import { InputGroup, FormControl, Button } from 'react-bootstrap';
 import Masonry from 'react-masonry-css';
+import debounce from 'lodash.debounce';
 
 export function MainPage() {
   const [code, setCode] = useState();
   const [accessToken, setAccessToken] = useState();
   const [loggedIn, setLoggedIn] = useState(false);
   const [name, setName] = useState('');
-  const [searchTerm, setSearchTerm] = useState();
   const [data, setData] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [savedPostsBySubreddit, setSavedPostsBySubreddit] = useState(new Map());
+  const [filteredPosts, setFilteredPosts] = useState([]);
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [selectedPosts, setSelectedPosts] = useState([]);
   const locationz = useLocation();
   const history = useHistory();
+
+  const debounceSearch = useCallback(
+    debounce((searchTerm, data) => findMatches(searchTerm, data), 1000),
+    [] // will be created only once initially
+  );
 
   const onToggleFilter = (fil) => {
     if (selectedFilters.includes(fil)) {
@@ -148,6 +153,12 @@ export function MainPage() {
     let responseData = await resp.json();
     setData(responseData);
     formatSavedPostsBySubreddit(responseData);
+    // setSavedPostsById(
+    //   responseData.reduce((map, obj) => {
+    //     map[obj.data.id] = obj.data;
+    //     return map;
+    //   }, {})
+    // );
     setLoadingPosts(false);
   };
 
@@ -157,12 +168,14 @@ export function MainPage() {
       data.forEach((post) => {
         if (items.has(post.data.subreddit)) {
           items.get(post.data.subreddit).posts.push({
+            id: post.data.id,
             url: post.data.permalink,
             title: post.data.title,
           });
         } else {
           items.set(post.data.subreddit, { posts: [] });
           items.get(post.data.subreddit).posts.push({
+            id: post.data.id,
             url: post.data.permalink,
             title: post.data.title,
           });
@@ -246,11 +259,24 @@ export function MainPage() {
     setSelectedPosts([]);
   };
 
-  const searchOnChange = (e) => {
-    if (e.target.value) setSearchTerm(e.target.value.toLowerCase());
+  const findMatches = (searchTerm, data) => {
+    console.log('called', searchTerm);
+    setFilteredPosts(
+      data
+        .filter((post) => postMatchesSearch(searchTerm, post.data))
+        .map((post) => post.data.id)
+    );
   };
 
-  const postMatchesSearch = (post) => {
+  const searchOnChange = (e) => {
+    if (e.target.value) {
+      debounceSearch(e.target.value.toLowerCase(), data);
+    } else {
+      setFilteredPosts([]);
+    }
+  };
+
+  const postMatchesSearch = (searchTerm, post) => {
     if (!searchTerm) return true;
 
     let matches = false;
@@ -280,6 +306,7 @@ export function MainPage() {
       let i = data.length;
       data.forEach((post) => {
         let shouldAdd = false;
+
         if (selectedFilters.length === 0) {
           shouldAdd = true;
         } else {
@@ -288,8 +315,12 @@ export function MainPage() {
           }
         }
 
-        if (!postMatchesSearch(post.data)) {
-          shouldAdd = false;
+        if (filteredPosts.length === 0) {
+          shouldAdd = true;
+        } else {
+          if (!filteredPosts.includes(post.data.id)) {
+            shouldAdd = false;
+          }
         }
 
         if (shouldAdd) {
@@ -360,6 +391,7 @@ export function MainPage() {
           loadingPosts={loadingPosts}
           loggedIn={loggedIn}
           loginFn={loginWithReddit}
+          noPosts={data && data.length}
         ></HeaderComp>
       </div>
       {data.length > 0 && (
@@ -372,6 +404,14 @@ export function MainPage() {
                   placeholder="Search saved posts..."
                   onChange={searchOnChange}
                 />
+                <InputGroup.Text
+                  style={{ borderRadius: '10px' }}
+                  id="basic-addon2"
+                >
+                  {filteredPosts.length === 0
+                    ? data.length
+                    : filteredPosts.length}
+                </InputGroup.Text>
               </InputGroup>
             </Col>
           </Row>

@@ -2,7 +2,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import Button from 'react-bootstrap/Button';
 import { Reddit } from 'react-bootstrap-icons';
 export const HeaderComp = (props) => {
-  const { loggedIn, loadingPosts, loginFn } = props;
+  const { loggedIn, loadingPosts, loginFn, noPosts } = props;
   if (loggedIn) {
     if (loadingPosts) {
       return (
@@ -16,7 +16,11 @@ export const HeaderComp = (props) => {
     } else {
       return (
         <div>
-          <h3>Your saved posts:</h3>
+          {noPosts ? (
+            <h3>You have {noPosts} saved posts.</h3>
+          ) : (
+            <h3>Your saved posts:</h3>
+          )}
         </div>
       );
     }
