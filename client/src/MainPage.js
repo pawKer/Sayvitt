@@ -251,6 +251,9 @@ export function MainPage() {
     setLoggedIn(false);
     setName(undefined);
     setData([]);
+    setFilteredPosts([]);
+    setSelectedFilters([]);
+    setSearchParam('');
     setSavedPostsBySubreddit(new Map());
     setLoadingPosts(false);
     localStorage.clear();
