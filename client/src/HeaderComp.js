@@ -8,7 +8,7 @@ export const HeaderComp = (props) => {
       return (
         <div>
           <h3>Loading your saved posts...</h3>
-          <Spinner animation="border" role="status">
+          <Spinner animation="border" role="status" variant="primary">
             <span className="sr-only">Loading...</span>
           </Spinner>
         </div>
@@ -27,9 +27,12 @@ export const HeaderComp = (props) => {
   } else {
     return (
       <div>
-        <h3>Click below to get started</h3>
         <Button
-          style={{ backgroundColor: '#ff4500', borderColor: 'white' }}
+          style={{
+            backgroundColor: '#ff4500',
+            borderColor: 'white',
+            borderRadius: '10px',
+          }}
           onClick={loginFn}
         >
           <Reddit size={30} /> Login with Reddit

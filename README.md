@@ -1,5 +1,19 @@
-# Sayvitt: The Reddit Saved Posts Manager
+# Sayvitt - The Reddit Saved Posts Manager
 
-Easily manage your saved posts on Reddit
+## Features
 
-Deployed at https://sayvitt.herokuapp.com/.
+👉 Easily manage your saved posts
+
+👉 Unsave multiple posts at once
+
+👉 Search for any keyword
+
+👉 Filter by subreddit
+
+👉 No data is stored
+
+## Try it out
+
+Currently deployed at https://sayvitt.herokuapp.com/.
+
+

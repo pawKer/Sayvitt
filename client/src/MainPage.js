@@ -1,14 +1,18 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useLocation, useHistory } from 'react-router-dom';
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 import { SubredditFilters } from './SubredditFilters';
 import { PostCard } from './PostCard';
 import { HeaderComp } from './HeaderComp';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
-import { InputGroup, FormControl, Button } from 'react-bootstrap';
+import {
+  InputGroup,
+  FormControl,
+  Button,
+  Row,
+  Col,
+  Container,
+} from 'react-bootstrap';
 import Masonry from 'react-masonry-css';
 import debounce from 'lodash.debounce';
 
@@ -118,7 +122,6 @@ export function MainPage() {
     })
       .then((res) => {
         if (res.status === 200) {
-          setLoggedIn(true);
           return res.json();
         } else if (res.status === 401) {
           localStorage.removeItem('accessToken');
@@ -128,6 +131,7 @@ export function MainPage() {
         }
       })
       .then((data) => {
+        setLoggedIn(true);
         if (data.data.name) {
           setName(data.data.name);
           return data.data.name;
@@ -371,39 +375,60 @@ export function MainPage() {
 
   return (
     <div className="App">
-      <div>
-        {name ? (
-          <h1>
-            Hello,{' '}
-            <a
-              href={`https://www.reddit.com/user/${name}`}
-              target="_blank"
-              rel="noreferrer"
+      <Container>
+        <Row className={'mb-3'}>
+          <Col className={'my-auto'}>
+            <h1
+              className={
+                loggedIn ? 'mb-0 headerStyle loggedIn' : 'mb-0 headerStyle'
+              }
             >
-              <i>{name}</i>
-            </a>
-            !
-          </h1>
-        ) : (
-          <h1>Hello!</h1>
-        )}
+              Sayvitt
+            </h1>
+          </Col>
+        </Row>
         {loggedIn && (
-          <Button
-            variant="outline-primary"
-            className="mx-3 my-3"
-            onClick={logout}
-          >
-            Logout
-          </Button>
+          <Row className={'mb-3'}>
+            <Col className={'mx-auto my-auto'}>
+              <h3>
+                Hello,{' '}
+                <a
+                  href={`https://www.reddit.com/user/${name}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <i>{name}</i>
+                </a>
+                !
+              </h3>
+              <Button variant="outline-primary" onClick={logout}>
+                Logout
+              </Button>
+            </Col>
+          </Row>
         )}
-        <HeaderComp
-          loadingPosts={loadingPosts}
-          loggedIn={loggedIn}
-          loginFn={loginWithReddit}
-          noPosts={data && data.length}
-        ></HeaderComp>
-      </div>
-      {data.length > 0 && (
+        {!loggedIn && (
+          <Row className={'mb-3'}>
+            <Col style={{ color: '#b5b5b5' }}>
+              <h4 className={'mb-0'}>👉 Easily manage your saved posts</h4>
+              <h4 className={'mb-0'}>👉 Unsave multiple posts at once</h4>
+              <h4 className={'mb-0'}>👉 Search for any keyword</h4>
+              <h4 className={'mb-0'}>👉 No data is stored</h4>
+            </Col>
+          </Row>
+        )}
+        <Row>
+          <Col>
+            <HeaderComp
+              loadingPosts={loadingPosts}
+              loggedIn={loggedIn}
+              loginFn={loginWithReddit}
+              noPosts={data && data.length}
+            />
+          </Col>
+        </Row>
+      </Container>
+      {loggedIn && data.length > 0 && (
         <Container fluid="md">
           <Row>
             <Col>

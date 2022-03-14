@@ -1,5 +1,6 @@
 .App {
   text-align: center;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .postCard {
@@ -46,4 +47,13 @@
 .description {
   font-weight: 200;
   font-size: small;
+}
+
+.headerStyle {
+  font-family: 'Permanent Marker', cursive;
+  font-size: 6em;
+}
+
+.loggedIn {
+  font-size: 3em;
 }
