@@ -1,7 +1,7 @@
 <h1 align="center">🧡<br>
   Sayvitt
 </h1>
-<h2 align="center">The Reddit Saved Posts Manager</h2>
+<h3 align="center">The Reddit Saved Posts Manager</h3>
 
 <img src="./preview/sayvitt.gif" />
 <h3 align="center"><a href="https://sayvitt.herokuapp.com" target="_blank">Live preview </a></h3>
