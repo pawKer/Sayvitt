@@ -3,7 +3,9 @@
 </h1>
 <h3 align="center">The Reddit Saved Posts Manager</h3>
 
-<img src="./preview/sayvitt.gif" align="center" />
+<div align="center" > 
+<img src="./preview/sayvitt.gif" />
+</div>
 <h3 align="center"><a href="https://sayvitt.herokuapp.com" target="_blank">Live preview </a></h3>
 
 ## 💬 Overview
