@@ -131,9 +131,9 @@ export function MainPage() {
         }
       })
       .then((data) => {
-        setLoggedIn(true);
         if (data.data.name) {
           setName(data.data.name);
+          setLoggedIn(true);
           return data.data.name;
         }
         console.log(data);
