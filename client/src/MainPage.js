@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useLocation, useHistory } from 'react-router-dom';
 import { SubredditFilters } from './SubredditFilters';
 import { PostCard } from './PostCard';
@@ -28,6 +28,8 @@ export function MainPage() {
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [selectedPosts, setSelectedPosts] = useState([]);
   const [searchParam, setSearchParam] = useState('');
+  const [fileContent, setFileContent] = useState('');
+  const fileRef = useRef();
   const locationz = useLocation();
   const history = useHistory();
 
@@ -156,6 +158,7 @@ export function MainPage() {
     });
 
     let responseData = await resp.json();
+    console.log(responseData);
     setData(responseData);
     formatSavedPostsBySubreddit(responseData);
     // setSavedPostsById(
@@ -246,6 +249,96 @@ export function MainPage() {
       ],
     });
   };
+
+  const exportAsJson = () => {
+    const postList = data.map((post) => {
+      return {
+        id: post.data.id,
+        postName: post.data.name,
+        title: post.data.title,
+        url: post.data.url,
+      };
+    });
+    const element = document.createElement('a');
+    const file = new Blob([JSON.stringify(postList)], {
+      type: 'application/json',
+    });
+    element.href = URL.createObjectURL(file);
+    element.download = 'savedPosts.json';
+    document.body.appendChild(element);
+    element.click();
+  };
+
+  const readFile = (event) => {
+    console.log('READING FILE');
+    const fileReader = new FileReader();
+    const { files } = event.target;
+    try {
+      fileReader.readAsText(files[0], 'UTF-8');
+    } catch {
+      alert('Imported file is not valid.');
+      return;
+    }
+
+    fileReader.onload = (e) => {
+      const content = e.target.result;
+      console.log(content);
+      let jsonContent;
+      try {
+        jsonContent = JSON.parse(content);
+        setFileContent(jsonContent);
+      } catch {
+        alert('Imported file is not valid JSON.');
+
+        return;
+      }
+    };
+  };
+
+  const handleSaveImportedPosts = useCallback(() => {
+    fileContent.forEach(async (post) => {
+      console.log(`Save post id: ${post.postName}`);
+      let resp = await fetch(`/api/v1/savePost`, {
+        method: 'post',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          postId: post.postName,
+          accessToken: localStorage.getItem('accessToken'),
+        }),
+      });
+
+      if (resp.status === 401) {
+        localStorage.setItem('tokenExpired', true);
+        return loginWithReddit();
+      }
+
+      let respJson = await resp.json();
+      console.log('Saved ', post.postName);
+    });
+    setFileContent('');
+  }, [fileContent]);
+
+  useEffect(() => {
+    if (fileContent) {
+      confirmAlert({
+        title: 'Confirm to submit',
+        message: `Are you sure you want to save ${fileContent.length} posts?`,
+        buttons: [
+          {
+            label: 'Yes',
+            onClick: handleSaveImportedPosts,
+          },
+          {
+            label: 'No',
+            onClick: () => setFileContent(''),
+          },
+        ],
+      });
+    }
+  }, [fileContent, handleSaveImportedPosts]);
 
   const clearAllFilters = () => {
     setSelectedFilters([]);
@@ -424,6 +517,9 @@ export function MainPage() {
               loggedIn={loggedIn}
               loginFn={loginWithReddit}
               noPosts={data && data.length}
+              exportAsJson={exportAsJson}
+              readFile={readFile}
+              fileRef={fileRef}
             />
           </Col>
         </Row>

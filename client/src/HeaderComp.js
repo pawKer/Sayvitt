@@ -1,8 +1,17 @@
 import Spinner from 'react-bootstrap/Spinner';
 import Button from 'react-bootstrap/Button';
-import { Reddit } from 'react-bootstrap-icons';
+import Accordion from 'react-bootstrap/Accordion';
+import { Reddit, Tools } from 'react-bootstrap-icons';
 export const HeaderComp = (props) => {
-  const { loggedIn, loadingPosts, loginFn, noPosts } = props;
+  const {
+    loggedIn,
+    loadingPosts,
+    loginFn,
+    noPosts,
+    exportAsJson,
+    fileRef,
+    readFile,
+  } = props;
   if (loggedIn) {
     if (loadingPosts) {
       return (
@@ -17,7 +26,27 @@ export const HeaderComp = (props) => {
       return (
         <div>
           {noPosts ? (
-            <h3>You have {noPosts} saved posts.</h3>
+            <>
+              <h3>You have {noPosts} saved posts.</h3>
+              <input ref={fileRef} type="file" onChange={readFile} hidden />
+              <Button
+                className={'mb-3'}
+                variant="primary"
+                onClick={() => {
+                  fileRef.current.value = null;
+                  fileRef.current.click();
+                }}
+              >
+                Import JSON
+              </Button>{' '}
+              <Button
+                className={'mb-3'}
+                variant="primary"
+                onClick={exportAsJson}
+              >
+                Export as JSON
+              </Button>
+            </>
           ) : (
             <h3>Your saved posts:</h3>
           )}
