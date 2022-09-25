@@ -15,4 +15,6 @@ router.post('/getSavedPosts', middleware, controller.getSavedPosts);
 
 router.post('/unsavePost', middleware, controller.unsavePost);
 
+router.post('/savePost', middleware, controller.savePost);
+
 export default router;

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useLocation, useHistory } from 'react-router-dom';
 import { SubredditFilters } from './SubredditFilters';
 import { PostCard } from './PostCard';
@@ -28,6 +28,8 @@ export function MainPage() {
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [selectedPosts, setSelectedPosts] = useState([]);
   const [searchParam, setSearchParam] = useState('');
+  const [fileContent, setFileContent] = useState('');
+  const fileRef = useRef();
   const locationz = useLocation();
   const history = useHistory();
 
@@ -156,6 +158,7 @@ export function MainPage() {
     });
 
     let responseData = await resp.json();
+
     setData(responseData);
     formatSavedPostsBySubreddit(responseData);
     // setSavedPostsById(
@@ -198,8 +201,9 @@ export function MainPage() {
     }
   };
 
-  const handleOnClickDeleteAllSelected = (e) => {
-    selectedPosts.forEach(async (postId) => {
+  const handleOnClickDeleteAllSelected = async (e) => {
+    setLoadingPosts(true);
+    for (let postId of selectedPosts) {
       let resp = await fetch(`/api/v1/unsavePost`, {
         method: 'post',
         headers: {
@@ -219,12 +223,13 @@ export function MainPage() {
 
       let respJson = await resp.json();
       console.log('Deleted ', postId);
-    });
+    }
 
     let newData = data;
     selectedPosts.forEach((postId) => {
       newData = newData.filter((item) => item.data.name !== postId);
     });
+    setLoadingPosts(false);
     setData(newData);
     formatSavedPostsBySubreddit(newData);
     setSelectedPosts([]);
@@ -247,6 +252,98 @@ export function MainPage() {
     });
   };
 
+  const exportAsJson = () => {
+    const postList = data.map((post) => {
+      return {
+        id: post.data.id,
+        postName: post.data.name,
+        title: post.data.title,
+        url: post.data.url,
+      };
+    });
+    const element = document.createElement('a');
+    const file = new Blob([JSON.stringify(postList)], {
+      type: 'application/json',
+    });
+    element.href = URL.createObjectURL(file);
+    element.download = 'savedPosts.json';
+    document.body.appendChild(element);
+    element.click();
+  };
+
+  const readFile = (event) => {
+    const fileReader = new FileReader();
+    const { files } = event.target;
+    try {
+      fileReader.readAsText(files[0], 'UTF-8');
+    } catch {
+      alert('Imported file is not valid.');
+      return;
+    }
+
+    fileReader.onload = (e) => {
+      const content = e.target.result;
+      let jsonContent;
+      try {
+        jsonContent = JSON.parse(content);
+        setFileContent(jsonContent);
+      } catch {
+        alert('Imported file is not valid JSON.');
+
+        return;
+      }
+    };
+  };
+
+  const handleSaveImportedPosts = useCallback(async () => {
+    setLoadingPosts(true);
+    for (let post of fileContent) {
+      console.log(`Save post id: ${post.postName}`);
+      let resp = await fetch(`/api/v1/savePost`, {
+        method: 'post',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          postId: post.postName,
+          accessToken: localStorage.getItem('accessToken'),
+        }),
+      });
+      if (resp.status !== 200) {
+        console.log(`Failed to save post: ${post.postName}`);
+      }
+      if (resp.status === 401) {
+        localStorage.setItem('tokenExpired', true);
+        return loginWithReddit();
+      }
+
+      console.log('Saved ', post.postName);
+    }
+    setLoadingPosts(false);
+    setFileContent('');
+    window.location.reload(false);
+  }, [fileContent]);
+
+  useEffect(() => {
+    if (fileContent) {
+      confirmAlert({
+        title: 'Confirm to submit',
+        message: `Are you sure you want to save ${fileContent.length} posts?`,
+        buttons: [
+          {
+            label: 'Yes',
+            onClick: handleSaveImportedPosts,
+          },
+          {
+            label: 'No',
+            onClick: () => setFileContent(''),
+          },
+        ],
+      });
+    }
+  }, [fileContent, handleSaveImportedPosts]);
+
   const clearAllFilters = () => {
     setSelectedFilters([]);
   };
@@ -265,6 +362,10 @@ export function MainPage() {
 
   const clearAllSelections = () => {
     setSelectedPosts([]);
+  };
+
+  const selectAll = () => {
+    setSelectedPosts(data.map((post) => post.data.name));
   };
 
   const findMatches = (searchTerm, data) => {
@@ -424,11 +525,14 @@ export function MainPage() {
               loggedIn={loggedIn}
               loginFn={loginWithReddit}
               noPosts={data && data.length}
+              exportAsJson={exportAsJson}
+              readFile={readFile}
+              fileRef={fileRef}
             />
           </Col>
         </Row>
       </Container>
-      {loggedIn && data.length > 0 && (
+      {loggedIn && !loadingPosts && data.length > 0 && (
         <Container fluid="md">
           <Row>
             <Col>
@@ -471,27 +575,34 @@ export function MainPage() {
               />
             </Col>
           </Row>
-          {selectedPosts.length > 0 && (
-            <Row className="mx-auto mb-3">
-              <Col>
-                <Button
-                  variant="primary"
-                  onClick={clearAllSelections}
-                  disabled={!(selectedPosts.length > 0)}
-                >
-                  Clear selections
-                </Button>
-                <Button
-                  variant="danger"
-                  className="ml-3"
-                  onClick={submitDeleteSelectedSaved}
-                  disabled={!(selectedPosts.length > 0)}
-                >
-                  Unsave selected
-                </Button>
-              </Col>
-            </Row>
-          )}
+
+          <Row className="mx-auto mb-3">
+            <Col>
+              <Button
+                variant="primary"
+                onClick={selectAll}
+                disabled={selectedPosts.length === data.length}
+              >
+                Select all
+              </Button>
+              <Button
+                variant="primary"
+                className="ml-3"
+                onClick={clearAllSelections}
+                disabled={!(selectedPosts.length > 0)}
+              >
+                Clear selections
+              </Button>
+              <Button
+                variant="danger"
+                className="ml-3"
+                onClick={submitDeleteSelectedSaved}
+                disabled={!(selectedPosts.length > 0)}
+              >
+                Unsave selected
+              </Button>
+            </Col>
+          </Row>
           <Masonry
             breakpointCols={{
               default: 3,
