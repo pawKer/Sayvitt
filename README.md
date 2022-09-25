@@ -12,6 +12,10 @@
 
 A better way to manage you saved posts on Reddit. Just log in using your account and start organizing!
 
+## 🆕 New
+
+Added a feature to export all your saved items as JSON or import a JSON file to save multiple items.
+
 ## 🏆 Features
 
 - Easily manage your saved posts
