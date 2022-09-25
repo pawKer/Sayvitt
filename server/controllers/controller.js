@@ -25,7 +25,6 @@ const Controller = () => {
       if (!authToken) {
         return res.status(500).json({ resData });
       }
-      console.log(resData);
       return res.status(200).json({ token: authToken });
     } else {
       return res.status(500).json({ resData });
@@ -145,7 +144,6 @@ const Controller = () => {
         'User-Agent': 'web:com.sayvitt:1.0.0 (by /u/raresdn)',
       },
     });
-    console.log(resp);
     if (resp.status === 200) {
       const resData = await resp.json();
       return res.status(200).json({ data: resData });

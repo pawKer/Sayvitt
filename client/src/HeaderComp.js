@@ -1,7 +1,24 @@
 import Spinner from 'react-bootstrap/Spinner';
 import Button from 'react-bootstrap/Button';
+import Card from 'react-bootstrap/Card';
 import Accordion from 'react-bootstrap/Accordion';
-import { Reddit, Tools } from 'react-bootstrap-icons';
+import {
+  Reddit,
+  Tools,
+  ChevronDown,
+  Download,
+  Upload,
+} from 'react-bootstrap-icons';
+import { useAccordionButton } from 'react-bootstrap/AccordionButton';
+const CustomToggle = ({ children, eventKey }) => {
+  const decoratedOnClick = useAccordionButton(eventKey, () => {});
+
+  return (
+    <h4 as="button" onClick={decoratedOnClick} className={'mb-0'}>
+      {children}
+    </h4>
+  );
+};
 export const HeaderComp = (props) => {
   const {
     loggedIn,
@@ -25,27 +42,36 @@ export const HeaderComp = (props) => {
     } else {
       return (
         <div>
-          {noPosts ? (
+          {noPosts >= 0 ? (
             <>
               <h3>You have {noPosts} saved posts.</h3>
               <input ref={fileRef} type="file" onChange={readFile} hidden />
-              <Button
-                className={'mb-3'}
-                variant="primary"
-                onClick={() => {
-                  fileRef.current.value = null;
-                  fileRef.current.click();
-                }}
-              >
-                Import JSON
-              </Button>{' '}
-              <Button
-                className={'mb-3'}
-                variant="primary"
-                onClick={exportAsJson}
-              >
-                Export as JSON
-              </Button>
+              <Accordion className={'mb-3'}>
+                <Card>
+                  <Card.Header>
+                    <CustomToggle eventKey="0">
+                      <Tools size={25} /> Advanced tools {'  '}
+                      <ChevronDown size={20} />
+                    </CustomToggle>
+                  </Card.Header>
+                  <Accordion.Collapse eventKey="0">
+                    <Card.Body>
+                      <Button
+                        variant="primary"
+                        onClick={() => {
+                          fileRef.current.value = null;
+                          fileRef.current.click();
+                        }}
+                      >
+                        <Upload /> Import JSON
+                      </Button>{' '}
+                      <Button variant="primary" onClick={exportAsJson}>
+                        <Download /> Export all as JSON
+                      </Button>
+                    </Card.Body>
+                  </Accordion.Collapse>
+                </Card>
+              </Accordion>
             </>
           ) : (
             <h3>Your saved posts:</h3>

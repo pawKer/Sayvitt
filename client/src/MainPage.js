@@ -158,7 +158,7 @@ export function MainPage() {
     });
 
     let responseData = await resp.json();
-    console.log(responseData);
+
     setData(responseData);
     formatSavedPostsBySubreddit(responseData);
     // setSavedPostsById(
@@ -201,8 +201,9 @@ export function MainPage() {
     }
   };
 
-  const handleOnClickDeleteAllSelected = (e) => {
-    selectedPosts.forEach(async (postId) => {
+  const handleOnClickDeleteAllSelected = async (e) => {
+    setLoadingPosts(true);
+    for (let postId of selectedPosts) {
       let resp = await fetch(`/api/v1/unsavePost`, {
         method: 'post',
         headers: {
@@ -222,12 +223,13 @@ export function MainPage() {
 
       let respJson = await resp.json();
       console.log('Deleted ', postId);
-    });
+    }
 
     let newData = data;
     selectedPosts.forEach((postId) => {
       newData = newData.filter((item) => item.data.name !== postId);
     });
+    setLoadingPosts(false);
     setData(newData);
     formatSavedPostsBySubreddit(newData);
     setSelectedPosts([]);
@@ -270,7 +272,6 @@ export function MainPage() {
   };
 
   const readFile = (event) => {
-    console.log('READING FILE');
     const fileReader = new FileReader();
     const { files } = event.target;
     try {
@@ -282,7 +283,6 @@ export function MainPage() {
 
     fileReader.onload = (e) => {
       const content = e.target.result;
-      console.log(content);
       let jsonContent;
       try {
         jsonContent = JSON.parse(content);
@@ -295,8 +295,9 @@ export function MainPage() {
     };
   };
 
-  const handleSaveImportedPosts = useCallback(() => {
-    fileContent.forEach(async (post) => {
+  const handleSaveImportedPosts = useCallback(async () => {
+    setLoadingPosts(true);
+    for (let post of fileContent) {
       console.log(`Save post id: ${post.postName}`);
       let resp = await fetch(`/api/v1/savePost`, {
         method: 'post',
@@ -309,16 +310,19 @@ export function MainPage() {
           accessToken: localStorage.getItem('accessToken'),
         }),
       });
-
+      if (resp.status !== 200) {
+        console.log(`Failed to save post: ${post.postName}`);
+      }
       if (resp.status === 401) {
         localStorage.setItem('tokenExpired', true);
         return loginWithReddit();
       }
 
-      let respJson = await resp.json();
       console.log('Saved ', post.postName);
-    });
+    }
+    setLoadingPosts(false);
     setFileContent('');
+    window.location.reload(false);
   }, [fileContent]);
 
   useEffect(() => {
@@ -358,6 +362,14 @@ export function MainPage() {
 
   const clearAllSelections = () => {
     setSelectedPosts([]);
+  };
+
+  const selectAll = () => {
+    if (filteredPosts.length > 0) {
+      setSelectedPosts(filteredPosts.map((post) => post.data.name));
+    } else {
+      setSelectedPosts(data.map((post) => post.data.name));
+    }
   };
 
   const findMatches = (searchTerm, data) => {
@@ -524,7 +536,7 @@ export function MainPage() {
           </Col>
         </Row>
       </Container>
-      {loggedIn && data.length > 0 && (
+      {loggedIn && !loadingPosts && data.length > 0 && (
         <Container fluid="md">
           <Row>
             <Col>
@@ -567,27 +579,34 @@ export function MainPage() {
               />
             </Col>
           </Row>
-          {selectedPosts.length > 0 && (
-            <Row className="mx-auto mb-3">
-              <Col>
-                <Button
-                  variant="primary"
-                  onClick={clearAllSelections}
-                  disabled={!(selectedPosts.length > 0)}
-                >
-                  Clear selections
-                </Button>
-                <Button
-                  variant="danger"
-                  className="ml-3"
-                  onClick={submitDeleteSelectedSaved}
-                  disabled={!(selectedPosts.length > 0)}
-                >
-                  Unsave selected
-                </Button>
-              </Col>
-            </Row>
-          )}
+
+          <Row className="mx-auto mb-3">
+            <Col>
+              <Button
+                variant="primary"
+                onClick={selectAll}
+                disabled={selectedPosts.length === data.length}
+              >
+                Select all
+              </Button>
+              <Button
+                variant="primary"
+                className="ml-3"
+                onClick={clearAllSelections}
+                disabled={!(selectedPosts.length > 0)}
+              >
+                Clear selections
+              </Button>
+              <Button
+                variant="danger"
+                className="ml-3"
+                onClick={submitDeleteSelectedSaved}
+                disabled={!(selectedPosts.length > 0)}
+              >
+                Unsave selected
+              </Button>
+            </Col>
+          </Row>
           <Masonry
             breakpointCols={{
               default: 3,

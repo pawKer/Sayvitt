@@ -6,7 +6,7 @@
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
-    "bootstrap": "^4.5.3",
+    "bootstrap": "^4.6.2",
     "pretty-ms": "^7.0.1",
     "react": "^17.0.1",
     "react-bootstrap": "^2.5.0",
@@ -27,7 +27,7 @@
     "eject": "react-scripts eject"
   },
   "engines": {
-    "node": "16.x"
+    "node": "17.x"
   },
   "proxy": "http://localhost:5000",
   "eslintConfig": {
