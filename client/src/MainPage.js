@@ -365,11 +365,7 @@ export function MainPage() {
   };
 
   const selectAll = () => {
-    if (filteredPosts.length > 0) {
-      setSelectedPosts(filteredPosts.map((post) => post.data.name));
-    } else {
-      setSelectedPosts(data.map((post) => post.data.name));
-    }
+    setSelectedPosts(data.map((post) => post.data.name));
   };
 
   const findMatches = (searchTerm, data) => {
