@@ -253,8 +253,10 @@ export function MainPage() {
   };
 
   const exportAsJson = () => {
+    let index = data.length;
     const postList = data.map((post) => {
       return {
+        index: index--,
         id: post.data.id,
         postName: post.data.name,
         title: post.data.title,
@@ -297,8 +299,9 @@ export function MainPage() {
 
   const handleSaveImportedPosts = useCallback(async () => {
     setLoadingPosts(true);
-    for (let post of fileContent) {
-      console.log(`Save post id: ${post.postName}`);
+
+    for (let i = fileContent.length - 1; i >= 0; i--) {
+      console.log(`Save post id: ${fileContent[i].postName}`);
       let resp = await fetch(`/api/v1/savePost`, {
         method: 'post',
         headers: {
@@ -306,19 +309,19 @@ export function MainPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          postId: post.postName,
+          postId: fileContent[i].postName,
           accessToken: localStorage.getItem('accessToken'),
         }),
       });
       if (resp.status !== 200) {
-        console.log(`Failed to save post: ${post.postName}`);
+        console.log(`Failed to save post: ${fileContent[i].postName}`);
       }
       if (resp.status === 401) {
         localStorage.setItem('tokenExpired', true);
         return loginWithReddit();
       }
 
-      console.log('Saved ', post.postName);
+      console.log('Saved ', fileContent[i].postName);
     }
     setLoadingPosts(false);
     setFileContent('');
