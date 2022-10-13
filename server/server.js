@@ -26,7 +26,7 @@ app.use(express.json());
 // This application level middleware prints incoming requests
 // to the servers console, useful to see incoming requests
 app.use((req, res, next) => {
-  console.log(`Request_Endpoint: ${req.method} ${req.url}`);
+  // console.log(`Request_Endpoint: ${req.method} ${req.url}`);
   next();
 });
 
