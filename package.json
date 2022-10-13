@@ -8,7 +8,7 @@
     "start": "node server/server.js",
     "build": "npm run build:client",
     "dev": "concurrently --kill-others-on-fail \"npm run client\" \"npm run server\"",
-    "client": "cd client && npm run start:n17",
+    "client": "cd client && npm run start",
     "server": "nodemon",
     "build:client": "cd client && npm install && npm run build",
     "lint": "eslint . --ext .ts",

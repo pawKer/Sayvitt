@@ -24,7 +24,8 @@ export function MainPage() {
   const [data, setData] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [savedPostsBySubreddit, setSavedPostsBySubreddit] = useState(new Map());
-  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [subredditFiltered, setSubredditFiltered] = useState([]);
+  const [postsToDisplay, setPostsToDisplay] = useState();
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [selectedPosts, setSelectedPosts] = useState([]);
   const [searchParam, setSearchParam] = useState('');
@@ -34,7 +35,11 @@ export function MainPage() {
   const history = useHistory();
 
   const debounceSearch = useCallback(
-    debounce((searchTerm, data) => findMatches(searchTerm, data), 300),
+    debounce(
+      (searchTerm, data, selectedFilters, filteredPosts) =>
+        findMatches(searchTerm, data, selectedFilters, filteredPosts),
+      300
+    ),
     [] // will be created only once initially
   );
 
@@ -44,7 +49,12 @@ export function MainPage() {
     } else {
       setSelectedFilters(selectedFilters.concat(fil));
     }
+    setSearchParam('');
   };
+
+  useEffect(() => {
+    setPostsToDisplay(data);
+  }, [data]);
 
   useEffect(() => {
     if (
@@ -76,6 +86,28 @@ export function MainPage() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    console.log('setting filtered');
+    const filt = data.filter((post) => {
+      if (selectedFilters.length === 0) {
+        return false;
+      } else {
+        if (selectedFilters.includes(post.data.subreddit.trim())) {
+          return true;
+        }
+      }
+      return false;
+    });
+    console.log(filt);
+
+    if (selectedFilters.length === 0) {
+      setPostsToDisplay(data);
+    } else {
+      setPostsToDisplay(filt);
+    }
+    setSubredditFiltered(filt);
+  }, [data, selectedFilters]);
 
   const loginWithReddit = () => {
     let redirect_url = `https://www.reddit.com/api/v1/authorize?client_id=${
@@ -193,11 +225,11 @@ export function MainPage() {
     }
   };
 
-  const handleCheckBox = (e, id) => {
-    if (!selectedPosts.includes(id)) {
-      setSelectedPosts(selectedPosts.concat(id));
+  const handleCheckBox = (e, postName) => {
+    if (!selectedPosts.includes(postName)) {
+      setSelectedPosts(selectedPosts.concat(postName));
     } else {
-      setSelectedPosts(selectedPosts.filter((e) => e !== id));
+      setSelectedPosts(selectedPosts.filter((e) => e !== postName));
     }
   };
 
@@ -348,6 +380,7 @@ export function MainPage() {
   }, [fileContent, handleSaveImportedPosts]);
 
   const clearAllFilters = () => {
+    setSearchParam('');
     setSelectedFilters([]);
   };
 
@@ -355,7 +388,7 @@ export function MainPage() {
     setLoggedIn(false);
     setName(undefined);
     setData([]);
-    setFilteredPosts([]);
+    setSubredditFiltered([]);
     setSelectedFilters([]);
     setSearchParam('');
     setSavedPostsBySubreddit(new Map());
@@ -368,27 +401,35 @@ export function MainPage() {
   };
 
   const selectAll = () => {
-    setSelectedPosts(data.map((post) => post.data.name));
+    const postsToSelect = postsToDisplay.map((post) => post.data.name);
+
+    const notAlreadySelected = postsToSelect.filter(
+      (name) => !selectedPosts.includes(name)
+    );
+    setSelectedPosts(selectedPosts.concat(notAlreadySelected));
   };
 
-  const findMatches = (searchTerm, data) => {
-    setSearchParam(searchTerm);
+  const findMatches = (searchTerm, data, selectedFilters, filteredPosts) => {
     if (searchTerm) {
       searchTerm = searchTerm.toLowerCase();
+      console.log('called', searchTerm);
+      const dataToSearch = filteredPosts.length > 0 ? filteredPosts : data;
+      setPostsToDisplay(
+        dataToSearch.filter((post) => postMatchesSearch(searchTerm, post.data))
+      );
     } else {
-      setFilteredPosts([]);
-      return;
+      if (selectedFilters.length === 0) {
+        setSubredditFiltered([]);
+        setPostsToDisplay(data);
+      } else {
+        setPostsToDisplay(filteredPosts);
+      }
     }
-    console.log('called', searchTerm);
-    setFilteredPosts(
-      data
-        .filter((post) => postMatchesSearch(searchTerm, post.data))
-        .map((post) => post.data.id)
-    );
   };
 
   const searchOnChange = (e) => {
-    debounceSearch(e.target.value, data);
+    setSearchParam(e.target.value);
+    debounceSearch(e.target.value, data, selectedFilters, subredditFiltered);
   };
 
   const postMatchesSearch = (searchTerm, post) => {
@@ -417,59 +458,37 @@ export function MainPage() {
 
   const getCards = () => {
     let cols = [];
-    if (data && data.length > 0) {
-      let i = data.length;
-      data.forEach((post) => {
-        let shouldAdd = false;
-
-        if (selectedFilters.length === 0) {
-          shouldAdd = true;
-        } else {
-          if (selectedFilters.includes(post.data.subreddit.trim())) {
-            shouldAdd = true;
-          }
-        }
-
-        if (filteredPosts.length === 0) {
-          if (searchParam) {
-            shouldAdd = false;
-          }
-        } else {
-          if (!filteredPosts.includes(post.data.id)) {
-            shouldAdd = false;
-          }
-        }
-
-        if (shouldAdd) {
-          let val = (
-            <PostCard
-              key={post.data.permalink}
-              url={post.data.url}
-              permalink={post.data.permalink}
-              name={post.data.name}
-              title={post.data.title}
-              date={post.data.created}
-              author={post.data.author}
-              description={post.data.selftext}
-              subreddit={post.data.subreddit}
-              handleCheckBox={handleCheckBox}
-              selectedPosts={selectedPosts}
-              index={i}
-              preview={
-                post.data.preview && post.data.preview.images[0].source.url
-              }
-              thumbnail={
-                post.data.thumbnail &&
-                !['self', 'spoiler', 'default', 'nsfw'].includes(
-                  post.data.thumbnail
-                )
-                  ? post.data.thumbnail
-                  : undefined
-              }
-            />
-          );
-          cols.push(val);
-        }
+    if (postsToDisplay && postsToDisplay.length > 0) {
+      let i = postsToDisplay.length;
+      postsToDisplay.forEach((post) => {
+        let val = (
+          <PostCard
+            key={post.data.permalink}
+            url={post.data.url}
+            permalink={post.data.permalink}
+            name={post.data.name}
+            title={post.data.title}
+            date={post.data.created}
+            author={post.data.author}
+            description={post.data.selftext}
+            subreddit={post.data.subreddit}
+            handleCheckBox={handleCheckBox}
+            selectedPosts={selectedPosts}
+            index={i}
+            preview={
+              post.data.preview && post.data.preview.images[0].source.url
+            }
+            thumbnail={
+              post.data.thumbnail &&
+              !['self', 'spoiler', 'default', 'nsfw'].includes(
+                post.data.thumbnail
+              )
+                ? post.data.thumbnail
+                : undefined
+            }
+          />
+        );
+        cols.push(val);
         i--;
       });
     }
@@ -544,14 +563,13 @@ export function MainPage() {
                   style={{ borderRadius: '10px' }}
                   placeholder="Search saved posts..."
                   onChange={searchOnChange}
+                  value={searchParam}
                 />
                 <InputGroup.Text
                   style={{ borderRadius: '10px' }}
                   id="basic-addon2"
                 >
-                  {filteredPosts.length === 0 && !searchParam
-                    ? data.length
-                    : filteredPosts.length}
+                  {postsToDisplay.length}
                 </InputGroup.Text>
               </InputGroup>
             </Col>
@@ -602,7 +620,9 @@ export function MainPage() {
                 onClick={submitDeleteSelectedSaved}
                 disabled={!(selectedPosts.length > 0)}
               >
-                Unsave selected
+                {selectedPosts.length > 0
+                  ? `Unsave ${selectedPosts.length} posts`
+                  : 'Unsave selected'}
               </Button>
             </Col>
           </Row>
