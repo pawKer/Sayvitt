@@ -6,7 +6,7 @@
 <div align="center" > 
 <img src="./preview/sayvitt.gif" />
 </div>
-<h3 align="center"><a href="https://sayvitt.herokuapp.com" target="_blank">Live preview </a></h3>
+<h3 align="center"><a href="https://sayvitt.reshra.xyz" target="_blank">Live preview </a></h3>
 
 ## 💬 Overview
 
