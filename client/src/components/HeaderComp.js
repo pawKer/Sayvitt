@@ -10,6 +10,10 @@ import {
   Upload,
 } from 'react-bootstrap-icons';
 import { useAccordionButton } from 'react-bootstrap/AccordionButton';
+import { useContext } from 'react';
+import { FileContext } from '../context/FileContextProvider';
+import { RedditContext } from '../context/RedditContextProvider';
+
 const CustomToggle = ({ children, eventKey }) => {
   const decoratedOnClick = useAccordionButton(eventKey, () => {});
 
@@ -19,16 +23,12 @@ const CustomToggle = ({ children, eventKey }) => {
     </h4>
   );
 };
-export const HeaderComp = (props) => {
-  const {
-    loggedIn,
-    loadingPosts,
-    loginFn,
-    noPosts,
-    exportAsJson,
-    fileRef,
-    readFile,
-  } = props;
+export const HeaderComp = () => {
+  const { data, loggedIn, loadingPosts, loginWithReddit } =
+    useContext(RedditContext);
+  const { fileRef, exportAsJson, readFile } = useContext(FileContext);
+  const noPosts = data && data.length;
+
   if (loggedIn) {
     if (loadingPosts) {
       return (
@@ -88,7 +88,7 @@ export const HeaderComp = (props) => {
             borderColor: 'white',
             borderRadius: '10px',
           }}
-          onClick={loginFn}
+          onClick={loginWithReddit}
         >
           <Reddit size={30} /> Login with Reddit
         </Button>
