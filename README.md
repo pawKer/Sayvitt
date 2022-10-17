@@ -12,10 +12,6 @@
 
 A better way to manage you saved posts on Reddit. Just log in using your account and start organizing!
 
-## 🆕 New
-
-Added a feature to export all your saved items as JSON or import a JSON file to save multiple items.
-
 ## 🏆 Features
 
 - Easily manage your saved posts
@@ -26,8 +22,14 @@ Added a feature to export all your saved items as JSON or import a JSON file to 
 
 - Filter by subreddit
 
+- Import and export posts as JSON
+
 - No data is stored
 
 ## 🚀 Quick start
 
 To run locally you can just do `npm run dev`, but make sure to provide the API keys in a `.env` file before starting.
+
+## 🧠 Advanced tools
+
+The advanced tools allow you to export all (or only selected) posts to a JSON file which can then be imported into a different account. This will allow you to easily migrate all the saved posts you want to a new account.
