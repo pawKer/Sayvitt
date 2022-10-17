@@ -7,7 +7,7 @@ export const PostCard = (props) => {
     return doc.documentElement.textContent;
   };
   return (
-    <Col key={props.permalink}>
+    <Col key={props.permalink} data-index={props.index}>
       <Card
         key={props.permalink}
         className={'postCard'}
@@ -63,14 +63,6 @@ export const PostCard = (props) => {
           </a>
         )}
         <Card.Footer>
-          {/*<Form.Group controlId="formBasicCheckbox">
-             <Form.Check
-              type="checkbox"
-              label="Select"
-              checked={props.selectedPosts.includes(props.name)}
-              onChange={(e) => props.handleCheckBox(e, props.name)}
-            /> 
-          </Form.Group>*/}
           <small className="text-muted">
             #{props.index}・u/{props.author}・
             {prettyMilliseconds(Date.now() - props.date * 1000, {

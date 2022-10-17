@@ -1,13 +1,11 @@
 import './App.css';
 import { BrowserRouter, Route } from 'react-router-dom';
-import { MainPage } from './MainPage';
+import { MainPageWithContext } from '../MainPageWithContext';
 function App() {
-  // const [location, setLocation] = useState(useLocation())
-
   return (
     <div>
       <BrowserRouter>
-        <Route path="/" exact component={MainPage} />
+        <Route path="/" exact component={MainPageWithContext} />
       </BrowserRouter>
     </div>
   );
