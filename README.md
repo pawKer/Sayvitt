@@ -28,7 +28,7 @@ A better way to manage you saved posts on Reddit. Just log in using your account
 
 ## 🚀 Quick start
 
-To run locally you can just do `npm run dev`, but make sure to provide the API keys in a `.env` file before starting.
+To run locally you can just do `npm run dev`, but make sure to provide the API keys and redirect URI in the `.env` files for both the server and the client before starting. Check the `.env.example` files for guidance.
 
 ## 🧠 Advanced tools
 
