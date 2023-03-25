@@ -1,6 +1,7 @@
 import Card from 'react-bootstrap/Card';
 import Col from 'react-bootstrap/Col';
 import prettyMilliseconds from 'pretty-ms';
+import { ChatLeftDotsFill } from 'react-bootstrap-icons';
 export const PostCard = (props) => {
   const htmlDecode = (input) => {
     var doc = new DOMParser().parseFromString(input, 'text/html');
@@ -24,7 +25,13 @@ export const PostCard = (props) => {
             rel="noreferrer"
             className={'cardTitle'}
           >
-            {props.title}
+            {!props.description && !props.url && (
+              <>
+                <ChatLeftDotsFill style={{ color: 'dimgray' }} />{' '}
+              </>
+            )}
+            {props.title.substring(0, 200)}
+            {props.title.length > 200 && '...'}
           </a>
           <p className={'cardSubtitle'}>
             r/{props.subreddit}
